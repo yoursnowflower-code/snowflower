@@ -117,7 +117,6 @@ function wireChoices(root) {
       const v = Number(row.dataset.value) === n ? 0 : n; // 같은 칸을 다시 누르면 비움
       row.dataset.value = v;
       $$('.cell', row).forEach((c, i) => c.classList.toggle('on', i < v));
-      $('.sat-val', row).textContent = v ? `+${v}` : '';
       return;
     }
     const dot = e.target.closest('.dot');
@@ -142,15 +141,19 @@ const avgSat = (sat) => {
 };
 const satMood = (avg) => (avg == null ? null : avg >= 5.5 ? 'happy' : avg >= 3.5 ? 'calm' : avg >= 2 ? 'worried' : 'sad');
 
-const SNACKS = ['🍪', '🍦', '🍰', '🍩', '🧁', '🍭', '🍫'];
+// 감정마다 고정된 간식 이모티콘 (입력·일지·통계 어디서나 같게)
+const EMOTION_SNACK = {
+  '입이 심심함': '🍪', '단거 땡김': '🍦', 허전함: '🍰', 적적함: '🍩', 지루함: '🍿', 스트레스: '🍫', 불안: '🧁',
+  피곤함: '🍮', 외로움: '🍡', '짜증·화': '🍭', 우울함: '🍬', 죄책감: '🥨', '보상받고 싶음': '🍯', '기쁨·신남': '🥐',
+};
+const snackOf = (emotion) => EMOTION_SNACK[emotion] || '🍪';
 const isDone = (e) => !!e.afterAt;
 
-function satRow(emotion, value, idx = 0) {
-  const icon = SNACKS[idx % SNACKS.length];
+function satRow(emotion, value) {
+  const icon = snackOf(emotion);
   return `<div class="sat" data-emotion="${esc(emotion)}" data-value="${value || 0}">
     <span class="sat-label">${esc(emotion)}</span>
     <div class="sat-cells">${Array.from({ length: SAT_MAX }, (_, i) => `<button type="button" class="cell${i < (value || 0) ? ' on' : ''}" data-n="${i + 1}" aria-label="+${i + 1}">${icon}</button>`).join('')}</div>
-    <span class="sat-val">${value ? `+${value}` : ''}</span>
   </div>`;
 }
 function readSat(root) {
@@ -161,9 +164,9 @@ function readSat(root) {
   });
   return out;
 }
-function satBar(value, idx = 0) {
-  const icon = SNACKS[idx % SNACKS.length];
-  return `<span class="sat-cells mini">${Array.from({ length: SAT_MAX }, (_, i) => `<i class="cell${i < value ? ' on' : ''}">${icon}</i>`).join('')}</span> <b>+${value}</b>`;
+function satBar(value, emotion, showNum = false) { // showNum: false | true | 표시할 숫자 문자열
+  const icon = snackOf(emotion);
+  return `<span class="sat-cells mini">${Array.from({ length: SAT_MAX }, (_, i) => `<i class="cell${i < value ? ' on' : ''}">${icon}</i>`).join('')}</span>${showNum === false ? '' : ` <b>+${showNum === true ? value : showNum}</b>`}`;
 }
 
 function wireMoods(form) {
@@ -405,7 +408,7 @@ async function renderAfter(id) {
           <p class="hint center">${fmtTime(e.time)} · ${esc(e.food || '간식')}</p>
           ${emos.length
             ? `<p class="hint center">고른 감정이 얼마나 채워졌나요? (최대 +${SAT_MAX})</p>
-               <div class="sat-list">${emos.map((em, i) => satRow(em, (e.after || {})[em], i)).join('')}</div>`
+               <div class="sat-list">${emos.map((em, i) => satRow(em, (e.after || {})[em])).join('')}</div>`
             : '<p class="hint center">먹기 전에 고른 감정이 없어요.</p>'}
           <h3>폭식이었나요?</h3>
           ${chips('binge', ['폭식이었어요'], e.binge ? ['폭식이었어요'] : [], false)}`,
@@ -455,7 +458,7 @@ async function renderEntry(id) {
     </section>
     ${
       isDone(e)
-        ? `<section class="card"><h2>먹고 난 후 ${e.binge ? '<span class="tag binge-tag">폭식</span>' : ''}</h2><dl>${Object.entries(e.after || {}).map(([k, v], i) => `<div class="row"><dt>${esc(k)}</dt><dd>${satBar(v, i)}</dd></div>`).join('')}</dl>
+        ? `<section class="card"><h2>먹고 난 후 ${e.binge ? '<span class="tag binge-tag">폭식</span>' : ''}</h2><dl>${Object.entries(e.after || {}).map(([k, v]) => `<div class="row"><dt>${esc(k)}</dt><dd>${satBar(v, k)}</dd></div>`).join('')}</dl>
             <a class="button" href="#/after/${e.id}">먹고 난 후 고치기</a></section>`
         : `<section class="card nudge">
             ${character('donut', 'curious', 'big')}
@@ -650,7 +653,7 @@ async function renderInsights() {
     <section class="card"><h2>감정</h2>${bars(count(list, (e) => e.emotions), n)}</section>
     <section class="card"><h2>먹고 난 후 만족도</h2>${
       satRows.length
-        ? `<p class="hint">감정별 평균 (최대 +${SAT_MAX})</p><ul class="sat-stats">${satRows.map(([k, avg, c]) => `<li><span class="label">${esc(k)}</span>${satBar(Math.round(avg), SNACKS.length - 1)}<small>${c}회</small></li>`).join('')}</ul>`
+        ? `<p class="hint">감정별 평균 (최대 +${SAT_MAX})</p><ul class="sat-stats">${satRows.map(([k, avg, c]) => `<li><span class="label">${esc(k)}</span>${satBar(Math.round(avg), k, Number.isInteger(avg) ? String(avg) : avg.toFixed(1))}<small>${c}회</small></li>`).join('')}</ul>`
         : '<p class="hint">"먹고 난 후"를 기록하면 여기에 보여요.</p>'
     }</section>
     <section class="card"><h2>상황</h2>${bars(count(list, (e) => e.activity), n)}</section>
