@@ -103,22 +103,30 @@ export function gang(mood = 'happy') {
   return `<div class="gang">${['chips', 'cookie', 'icecream', 'donut', 'choco'].map((id, i) => character(id, i % 2 ? 'calm' : mood)).join('')}</div>`;
 }
 
-// 달력용 작은 얼굴: 작게 보여도 구분되도록 모양과 색을 크게 다르게
-// 폭식한 날 = 배부른 통통 쿠키 (입가에 부스러기), 폭식 없는 날 = 하늘색 스마일
+// 달력용 작은 얼굴: 같은 크기의 쿠키 얼굴, 표정·소품으로 구분
+// 폭식한 날 = 배부른 쿠키 (빵빵한 볼, 입가 부스러기), 폭식 없는 날 = 머리띠 두른 운동하는 쿠키
+const cookieBase = (fill) => `
+  <circle cx="20" cy="21" r="16.5" fill="${fill}" stroke="${INK}" stroke-width="2.4"/>
+  <circle cx="9" cy="27" r="1.5" fill="#7a4a32"/><circle cx="31" cy="28" r="1.6" fill="#7a4a32"/>`;
+
 export function dayFace(binge) {
   return binge
     ? `<svg class="dayface" viewBox="0 0 40 40" aria-label="폭식한 날">
-        <ellipse cx="20" cy="21" rx="18.5" ry="16" fill="#e9a65c" stroke="${INK}" stroke-width="2.4"/>
-        <circle cx="10" cy="12" r="1.8" fill="#7a4a32"/><circle cx="30" cy="11" r="1.6" fill="#7a4a32"/><circle cx="33" cy="26" r="1.7" fill="#7a4a32"/><circle cx="7" cy="27" r="1.5" fill="#7a4a32"/>
-        <ellipse cx="9.5" cy="22" rx="4" ry="3" fill="#ff8fab"/><ellipse cx="30.5" cy="22" rx="4" ry="3" fill="#ff8fab"/>
-        <path d="M12 17 q3 2.5 6 0 M22 17 q3 2.5 6 0" fill="none" stroke="${INK}" stroke-width="2.2" stroke-linecap="round"/>
-        <path d="M15.5 25 q4.5 4 9 0" fill="none" stroke="${INK}" stroke-width="2.2" stroke-linecap="round"/>
-        <circle cx="14" cy="29" r="1.3" fill="#7a4a32"/><circle cx="25.5" cy="29.5" r="1.1" fill="#7a4a32"/><circle cx="20" cy="31" r="1" fill="#7a4a32"/><circle cx="23" cy="27.5" r=".8" fill="#7a4a32"/>
+        ${cookieBase('#e9a65c')}
+        <circle cx="12" cy="11" r="1.6" fill="#7a4a32"/><circle cx="28" cy="10.5" r="1.5" fill="#7a4a32"/>
+        <ellipse cx="10" cy="22.5" rx="4" ry="3" fill="#ff8fab"/><ellipse cx="30" cy="22.5" rx="4" ry="3" fill="#ff8fab"/>
+        <path d="M12.5 18 q3 2.5 6 0 M21.5 18 q3 2.5 6 0" fill="none" stroke="${INK}" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M16 25 q4 3.5 8 0" fill="none" stroke="${INK}" stroke-width="2.2" stroke-linecap="round"/>
+        <circle cx="14.5" cy="29" r="1.2" fill="#7a4a32"/><circle cx="25" cy="29.5" r="1.1" fill="#7a4a32"/><circle cx="20" cy="31" r="1" fill="#7a4a32"/>
       </svg>`
     : `<svg class="dayface" viewBox="0 0 40 40" aria-label="폭식 없는 날">
-        <circle cx="20" cy="20" r="15" fill="#9fd6f5" stroke="${INK}" stroke-width="2.4"/>
-        <path d="M13 18 q2.5 -4 5 0 M22 18 q2.5 -4 5 0" fill="none" stroke="${INK}" stroke-width="2.2" stroke-linecap="round"/>
-        <path d="M14 23 q6 6 12 0" fill="none" stroke="${INK}" stroke-width="2.2" stroke-linecap="round"/>
-        <ellipse cx="11.5" cy="22.5" rx="2.4" ry="1.6" fill="#ff9fb8"/><ellipse cx="28.5" cy="22.5" rx="2.4" ry="1.6" fill="#ff9fb8"/>
+        ${cookieBase('#f4c98f')}
+        <path d="M4.2 14 Q20 8 35.8 14 L35.6 18.6 Q20 12.8 4.4 18.6 Z" fill="#4fa8dc" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M5 16.3 Q20 10.6 35 16.3" fill="none" stroke="#fff" stroke-width="1.3"/>
+        <path d="M35 15 l4 -3 M35.4 17 l4 1" stroke="${INK}" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="15" cy="22" r="1.9" fill="${INK}"/><circle cx="25" cy="22" r="1.9" fill="${INK}"/>
+        <path d="M14.5 26 q5.5 5.5 11 0" fill="none" stroke="${INK}" stroke-width="2.2" stroke-linecap="round"/>
+        <ellipse cx="10.5" cy="25" rx="2.4" ry="1.6" fill="#ff9fb8"/><ellipse cx="29.5" cy="25" rx="2.4" ry="1.6" fill="#ff9fb8"/>
+        <path d="M31.5 22 q-1.6 2.6 0 3.4 q1.6 -0.8 0 -3.4z" fill="#9fd6f5" stroke="${INK}" stroke-width="1"/>
       </svg>`;
 }
