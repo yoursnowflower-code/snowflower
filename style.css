@@ -441,7 +441,7 @@ input[type=datetime-local] {
 }
 input[type=datetime-local]::-webkit-date-and-time-value { text-align: left; margin: 0; }
 input[type=datetime-local]::-webkit-datetime-edit { padding: 0; }
-.wcard, .wbody { min-width: 0; overflow-x: hidden; }
+.wcard, .wbody { min-width: 0; }
 html, body { overflow-x: hidden; }
 
 /* 이전·다음: 카드 아래 페이지 흐름에, 가운데 정렬 */
@@ -478,3 +478,18 @@ dd .sat-cells.mini + b, .sat-stats li > b { white-space: nowrap; }
   .day-cell.binge { background: #5a2a3a; }
   .day-cell.ok { background: #4a4330; }
 }
+.scale-row { padding: 4px 2px; }
+
+/* 다듬기 */
+.wcard { min-height: 0; }
+.hero { max-height: 240px; object-fit: cover; }
+.list-face { position: absolute; top: 6px; right: 8px; }
+.list-face .dayface { width: 28px; height: 28px; }
+.day-cell.ok { background: var(--accent-soft); border-color: #7cc3ea; }
+.day-cell.binge { background: #fff1e0; border-color: #e9a65c; }
+@media (prefers-color-scheme: dark) { .day-cell.binge { background: #4a3a2a; } .day-cell.ok { background: #2f3c4f; } }
+.sat-stats li { grid-template-columns: minmax(0, 5.5em) auto auto auto; column-gap: 6px; }
+.sat-stats .label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sat-stats small { white-space: nowrap; }
+#toast { top: auto; bottom: calc(var(--tabbar) + env(safe-area-inset-bottom) + 14px); transform: translate(-50%, 16px); }
+#toast.show { transform: translate(-50%, 0); }

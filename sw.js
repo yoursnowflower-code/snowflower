@@ -1,5 +1,5 @@
 // 오프라인용 서비스 워커: 항상 최신 파일을 먼저 받고, 인터넷이 없을 때만 저장본을 쓴다
-const CACHE = 'snackjournal-v17';
+const CACHE = 'snackjournal-v18';
 const ASSETS = ['./', './index.html', './style.css', './app.js', './db.js', './characters.js', './manifest.webmanifest', './icons/icon.svg'];
 
 self.addEventListener('install', (e) => {

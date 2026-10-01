@@ -330,7 +330,7 @@ async function renderForm(id) {
         onShow: (card) => {
           const fd = new FormData(form);
           const parts = [
-            ['🕐', (fd.get('time') || '').replace('T', ' ')],
+            ['🕐', fd.get('time') ? `${fmtDate(fd.get('time'))} ${fmtTime(fd.get('time'))}` : ''],
             ['🍪', fd.get('food')],
             ['📍', [readChips(form, 'place')[0], ...readChips(form, 'activity')].filter(Boolean).join(', ')],
             ['💭', readChips(form, 'emotions').join(', ')],
@@ -511,6 +511,7 @@ async function renderList() {
                 <div class="line2">${[e.place, ...(e.emotions || [])].filter(Boolean).slice(0, 4).map((t) => `<span class="tag">${esc(t)}</span>`).join('')}</div>
                 ${isDone(e) ? '' : '<div class="pending">먹고 난 후 미입력</div>'}
               </div>
+              ${e.binge ? `<span class="list-face">${dayFace(true)}</span>` : ''}
             </a></li>`
           )
           .join('')}
@@ -590,7 +591,7 @@ function calendar(all) {
             ${
               sel
                 ? `<ul class="entries">${sel
-                    .map((e) => `<li><a href="#/entry/${e.id}" class="entry"><div class="body"><div class="line1"><b>${fmtTime(e.time)}</b> ${esc(e.food || '')}</div><div class="line2">${(e.emotions || []).slice(0, 3).map((t) => `<span class="tag">${esc(t)}</span>`).join('')}</div></div>${e.binge ? '<span class="flag">!</span>' : isDone(e) ? '' : '<span class="pending-tag">미입력</span>'}</a></li>`)
+                    .map((e) => `<li><a href="#/entry/${e.id}" class="entry"><div class="body"><div class="line1"><b>${fmtTime(e.time)}</b> ${esc(e.food || '')}</div><div class="line2">${(e.emotions || []).slice(0, 3).map((t) => `<span class="tag">${esc(t)}</span>`).join('')}</div></div>${e.binge ? `<span class="list-face">${dayFace(true)}</span>` : isDone(e) ? '' : '<span class="pending-tag">미입력</span>'}</a></li>`)
                     .join('')}</ul>`
                 : '<p class="hint">기록 없음</p>'
             }
