@@ -25,7 +25,9 @@ jobs:
       - name: Collect site files
         run: |
           mkdir _site
-          cp -r index.html app.js db.js style.css sw.js manifest.webmanifest icons _site/
+          # 앱 파일 전체를 복사 (스크린샷·설정 폴더 제외)
+          cp -r *.html *.js *.css *.webmanifest icons _site/
+          ls -R _site
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

@@ -791,5 +791,10 @@ window.addEventListener('hashchange', route);
 route();
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').catch(() => {});
+  // 새 버전이 설치되면 한 번 새로고침해서 바로 반영
+  const hadController = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (hadController) location.reload();
+  });
+  navigator.serviceWorker.register('sw.js').then((r) => r.update()).catch(() => {});
 }

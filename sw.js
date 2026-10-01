@@ -1,9 +1,9 @@
-// 오프라인 사용을 위한 단순 캐시 우선 서비스 워커
-const CACHE = 'snackjournal-v9';
+// 오프라인용 서비스 워커: 항상 최신 파일을 먼저 받고, 인터넷이 없을 때만 저장본을 쓴다
+const CACHE = 'snackjournal-v10';
 const ASSETS = ['./', './index.html', './style.css', './app.js', './db.js', './characters.js', './manifest.webmanifest', './icons/icon.svg'];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)));
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS.map((u) => new Request(u, { cache: 'reload' })))));
   self.skipWaiting();
 });
 
@@ -15,8 +15,14 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
-  if (e.request.method !== 'GET') return;
+  if (e.request.method !== 'GET' || new URL(e.request.url).origin !== location.origin) return;
   e.respondWith(
-    caches.match(e.request).then((hit) => hit || fetch(e.request))
+    fetch(e.request, { cache: 'no-cache' })
+      .then((res) => {
+        const copy = res.clone();
+        caches.open(CACHE).then((c) => c.put(e.request, copy));
+        return res;
+      })
+      .catch(() => caches.match(e.request))
   );
 });
