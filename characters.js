@@ -108,17 +108,24 @@ export function gang(mood = 'happy') {
 const CHIP = '#7a4a32';
 const PINK = '#ff8fab';
 
-// 폭식이: 한입 베어먹힌 통통 쿠키, 혀 날름, 입가 부스러기, 두 손으로 배를 감싸 쥠
+// 폭식이: 배불러서 행복하고 게으른 쿠키. 비스듬히 퍼져 앉아 한 팔은 머리 뒤로 베고,
+// 한 손으로 배를 토닥토닥. 반쯤 감긴 나른한 눈, 흐뭇한 입, 입가 부스러기, 머리 위 Zz
 const POKSIK = `
-  <path d="M12 39 q-1 2.5 2.5 2.5 M28 39 q1 2.5 -2.5 2.5" fill="none" stroke="${INK}" stroke-width="2.4" stroke-linecap="round"/>
-  <path d="M21 4 C10 4 2.5 12 2.5 22 C2.5 32.5 10.5 39.5 21 39.5 C31.5 39.5 38.5 32 38.5 22 C38.5 19.5 38 17.5 37.3 15.6 a3.2 3.2 0 0 1 -3.9 -2.6 a3.2 3.2 0 0 1 -3.2 -3.7 a3.2 3.2 0 0 1 -3 -3.8 C25.5 4.5 23.4 4 21 4Z" fill="#e9b06a" stroke="${INK}" stroke-width="2.4" stroke-linejoin="round"/>
-  <circle cx="11" cy="12" r="1.6" fill="${CHIP}"/><circle cx="6.5" cy="27" r="1.4" fill="${CHIP}"/><circle cx="34" cy="28" r="1.5" fill="${CHIP}"/>
-  <path d="M10.5 17.5 l4.2 2.1 l-4.2 2.1 M27.5 17.5 l-4.2 2.1 l4.2 2.1" fill="none" stroke="${INK}" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>
-  <ellipse cx="9" cy="24.5" rx="3.4" ry="2.3" fill="${PINK}"/><ellipse cx="29" cy="24.5" rx="3.4" ry="2.3" fill="${PINK}"/>
-  <path d="M14.5 24 q4.5 4.5 9 0" fill="none" stroke="${INK}" stroke-width="2.1" stroke-linecap="round"/>
-  <path d="M19.4 26 q2.4 .4 2.5 3 q-2.5 1.2 -3.8 -1.3z" fill="#ff6f91" stroke="${INK}" stroke-width="1.2"/>
-  <circle cx="13" cy="29" r="1" fill="${CHIP}"/><circle cx="25.5" cy="29.5" r=".9" fill="${CHIP}"/><circle cx="23" cy="31.2" r=".7" fill="${CHIP}"/>
-  <path d="M8.5 31 q4 4.5 8 2.6 M29.5 31 q-4 4.5 -8 2.6" fill="none" stroke="${INK}" stroke-width="2.3" stroke-linecap="round"/>`;
+  <path d="M8 38.5 q-4 1.5 -6.5 .5 M30 38 q4.5 2 7.5 1" fill="none" stroke="${INK}" stroke-width="2.4" stroke-linecap="round"/>
+  <g transform="rotate(-12 20 25)">
+    <path d="M7 15 q-5 -1 -4.5 4" fill="none" stroke="${INK}" stroke-width="2.4" stroke-linecap="round"/>
+    <path d="M20 8.5 C9.5 8.5 3 16 3 25 C3 34 10.5 40 20 40 C29.5 40 37 34 37 25 C37 22.8 36.6 20.8 35.9 19 a3 3 0 0 1 -3.7 -2.4 a3 3 0 0 1 -3 -3.5 a3 3 0 0 1 -2.8 -3.6 C24.5 8.8 22.3 8.5 20 8.5Z" fill="#e9b06a" stroke="${INK}" stroke-width="2.4" stroke-linejoin="round"/>
+    <circle cx="11" cy="16" r="1.5" fill="${CHIP}"/><circle cx="7" cy="30" r="1.4" fill="${CHIP}"/><circle cx="33" cy="31" r="1.4" fill="${CHIP}"/>
+    <path d="M10.5 22.5 q3 1.8 6 0 M23.5 22.5 q3 1.8 6 0" fill="none" stroke="${INK}" stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M10.8 21 h5.6 M23.8 21 h5.6" stroke="${INK}" stroke-width="1.2" stroke-linecap="round" opacity=".5"/>
+    <ellipse cx="9" cy="27" rx="3.4" ry="2.2" fill="${PINK}"/><ellipse cx="31" cy="27" rx="3.4" ry="2.2" fill="${PINK}"/>
+    <path d="M15.5 27.5 q4.5 3.8 9 0" fill="none" stroke="${INK}" stroke-width="2.1" stroke-linecap="round"/>
+    <circle cx="14" cy="31" r=".9" fill="${CHIP}"/><circle cx="26" cy="31.3" r=".9" fill="${CHIP}"/><circle cx="22.5" cy="32.5" r=".7" fill="${CHIP}"/>
+    <path d="M23 36.5 q5 -.5 7 -4" fill="none" stroke="${INK}" stroke-width="2.3" stroke-linecap="round"/>
+    <path d="M31.5 30 l1.8 -1 M32.6 33 l2 -.2" stroke="${INK}" stroke-width="1.2" stroke-linecap="round" opacity=".6"/>
+  </g>
+  <text x="30" y="8" font-size="7" font-weight="700" fill="#4fa8dc" font-family="sans-serif">z</text>
+  <text x="34.5" y="4.5" font-size="5" font-weight="700" fill="#4fa8dc" font-family="sans-serif">z</text>`;
 
 // 건강이: 동그란 쿠키, 하늘색 운동 머리띠, 두 팔 번쩍 화이팅, 운동화
 const GEONGANG = `
