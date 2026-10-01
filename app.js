@@ -533,7 +533,7 @@ function bars(pairs, total, limit = 5) {
   return `<ul class="bars">${pairs
     .slice(0, limit)
     .map(
-      ([k, v]) => `<li><span class="label">${esc(k)}</span><span class="bar"><i style="width:${(v / max) * 100}%"></i></span><span class="val">${v}회${total ? ` · ${Math.round((v / total) * 100)}%` : ''}</span></li>`
+      ([k, v]) => `<li><span class="label">${esc(k)}</span><span class="bar"><i style="width:${(v / max) * 100}%"></i></span><span class="val">${v}회</span></li>`
     )
     .join('')}</ul>`;
 }

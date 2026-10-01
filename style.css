@@ -493,3 +493,10 @@ dd .sat-cells.mini + b, .sat-stats li > b { white-space: nowrap; }
 .sat-stats small { white-space: nowrap; }
 #toast { top: auto; bottom: calc(var(--tabbar) + env(safe-area-inset-bottom) + 14px); transform: translate(-50%, 16px); }
 #toast.show { transform: translate(-50%, 0); }
+
+/* 통계 막대: 바탕 트랙 없이, 해당 길이만 테두리 있는 막대로 */
+.bars li { grid-template-columns: minmax(0, 8.5em) 1fr 2.6em; }
+.bars .bar { background: none; border: 0; height: 16px; border-radius: 0; overflow: visible; }
+.bars .bar i { height: 100%; border: 2px solid var(--line); border-radius: 8px; box-sizing: border-box; min-width: 16px; }
+.bars .val { text-align: right; }
+.bars .label { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.3; }
