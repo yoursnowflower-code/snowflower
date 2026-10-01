@@ -1,0 +1,14 @@
+{
+  "name": "스노우플라워 간식 일지",
+  "short_name": "간식일지",
+  "description": "간식을 먹을 때마다 시간·직전 상황·느낌·기대·사진을 기록하는 폭식 습관 교정용 자기관찰 일지",
+  "lang": "ko",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fdfbf6",
+  "theme_color": "#5b7f6e",
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

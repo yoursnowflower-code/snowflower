@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#5b7f6e" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="간식일지" />
+  <title>간식 일지</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="icons/icon.svg" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1 id="title">간식 일지</h1>
+  </header>
+
+  <main id="view" aria-live="polite"></main>
+
+  <nav class="tabbar" aria-label="메뉴">
+    <a href="#/new" data-tab="new"><span class="ico">＋</span>기록</a>
+    <a href="#/list" data-tab="list"><span class="ico">☰</span>일지</a>
+    <a href="#/insights" data-tab="insights"><span class="ico">◔</span>패턴</a>
+    <a href="#/settings" data-tab="settings"><span class="ico">⚙</span>설정</a>
+  </nav>
+
+  <div id="toast" role="status"></div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
