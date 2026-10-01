@@ -112,12 +112,13 @@ const cookieBase = (fill) => `
 export function dayFace(binge) {
   return binge
     ? `<svg class="dayface" viewBox="0 0 40 40" aria-label="폭식한 날">
-        ${cookieBase('#e9a65c')}
-        <circle cx="12" cy="11" r="1.6" fill="#7a4a32"/><circle cx="28" cy="10.5" r="1.5" fill="#7a4a32"/>
-        <ellipse cx="10" cy="22.5" rx="4" ry="3" fill="#ff8fab"/><ellipse cx="30" cy="22.5" rx="4" ry="3" fill="#ff8fab"/>
-        <path d="M12.5 18 q3 2.5 6 0 M21.5 18 q3 2.5 6 0" fill="none" stroke="${INK}" stroke-width="2.2" stroke-linecap="round"/>
-        <path d="M16 25 q4 3.5 8 0" fill="none" stroke="${INK}" stroke-width="2.2" stroke-linecap="round"/>
-        <circle cx="14.5" cy="29" r="1.2" fill="#7a4a32"/><circle cx="25" cy="29.5" r="1.1" fill="#7a4a32"/><circle cx="20" cy="31" r="1" fill="#7a4a32"/>
+        <path d="M20 5.5 C29 5.5 35 11 37 19 C39.5 28 33 36.5 20 36.5 C7 36.5 0.5 28 3 19 C5 11 11 5.5 20 5.5Z" fill="#e9a65c" stroke="${INK}" stroke-width="2.4"/>
+        <path d="M11.5 31.5 q8.5 4.2 17 0" fill="none" stroke="${INK}" stroke-width="1.6" stroke-linecap="round" opacity=".55"/>
+        <circle cx="13" cy="10.5" r="1.5" fill="#7a4a32"/><circle cx="27.5" cy="10" r="1.4" fill="#7a4a32"/><circle cx="5.5" cy="22" r="1.3" fill="#7a4a32"/><circle cx="34.5" cy="23" r="1.4" fill="#7a4a32"/>
+        <ellipse cx="9" cy="23" rx="5.2" ry="4" fill="#ff8fab"/><ellipse cx="31" cy="23" rx="5.2" ry="4" fill="#ff8fab"/>
+        <path d="M14 18.5 q2.3 2 4.6 0 M21.4 18.5 q2.3 2 4.6 0" fill="none" stroke="${INK}" stroke-width="2.1" stroke-linecap="round"/>
+        <ellipse cx="20" cy="25.3" rx="2.4" ry="1.7" fill="${INK}"/>
+        <circle cx="15.5" cy="28.5" r="1.1" fill="#7a4a32"/><circle cx="24.5" cy="28.8" r="1" fill="#7a4a32"/><circle cx="20" cy="29.8" r=".9" fill="#7a4a32"/><circle cx="17.5" cy="27.2" r=".7" fill="#7a4a32"/>
       </svg>`
     : `<svg class="dayface" viewBox="0 0 40 40" aria-label="폭식 없는 날">
         ${cookieBase('#f4c98f')}
