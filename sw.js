@@ -1,6 +1,6 @@
 // 오프라인 사용을 위한 단순 캐시 우선 서비스 워커
-const CACHE = 'snackjournal-v2';
-const ASSETS = ['./', './index.html', './style.css', './app.js', './db.js', './manifest.webmanifest', './icons/icon.svg'];
+const CACHE = 'snackjournal-v3';
+const ASSETS = ['./', './index.html', './style.css', './app.js', './db.js', './characters.js', './manifest.webmanifest', './icons/icon.svg'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)));

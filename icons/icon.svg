@@ -1,7 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#5b7f6e"/>
-  <g fill="none" stroke="#fdfbf6" stroke-width="28" stroke-linecap="round">
-    <path d="M256 104v304M124 180l264 152M124 332l264-152"/>
-    <path d="M256 160l-40-36M256 160l40-36M256 352l-40 36M256 352l40 36"/>
+  <rect width="512" height="512" rx="112" fill="#9fd6f5"/>
+  <g transform="translate(46 46) scale(3.5)" stroke="#4b3a4f" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M60 16 C88 14 106 36 104 62 C102 90 82 106 58 104 C32 102 14 84 16 58 C18 34 34 18 60 16Z" fill="#f4c98f"/>
+    <ellipse cx="38" cy="40" rx="5" ry="4" fill="#8a5a44" stroke="none"/>
+    <ellipse cx="82" cy="36" rx="4" ry="3.5" fill="#8a5a44" stroke="none"/>
+    <ellipse cx="86" cy="80" rx="5" ry="4" fill="#8a5a44" stroke="none"/>
+    <ellipse cx="43" cy="67" rx="5" ry="3" fill="#ff9fb8" stroke="none"/>
+    <ellipse cx="77" cy="67" rx="5" ry="3" fill="#ff9fb8" stroke="none"/>
+    <path d="M47 60 q4 -6 8 0 M65 60 q4 -6 8 0"/>
+    <path d="M53 69 q7 8 14 0"/>
   </g>
 </svg>

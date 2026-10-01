@@ -1,4 +1,5 @@
 import { db } from './db.js';
+import { character, say, gang } from './characters.js';
 
 // ───────────────────────── 선택지 ─────────────────────────
 // 인지행동치료(CBT)의 자기관찰 기록지 항목을 바탕으로 구성:
@@ -118,6 +119,78 @@ function wireChoices(root) {
   });
 }
 
+// ───────────────────────── 카드 넘기기 ─────────────────────────
+// 질문 하나를 카드 한 장에 담고, 버튼이나 좌우 스와이프로 넘긴다
+function wizard(form, cards, submitLabel) {
+  form.classList.add('wizard');
+  form.innerHTML = `
+    <div class="wiz-progress">${cards.map((_, i) => `<i data-i="${i}"></i>`).join('')}</div>
+    ${cards
+      .map(
+        (c, i) => `<section class="wcard" data-i="${i}" hidden>
+          ${say(c.char, c.mood, c.say)}
+          <div class="wbody">${c.body}</div>
+        </section>`
+      )
+      .join('')}
+    <div class="wiz-nav">
+      <button type="button" class="prev">이전</button>
+      <button type="button" class="next primary">다음</button>
+      <button type="submit" class="primary save" hidden>${submitLabel}</button>
+    </div>`;
+
+  const secs = $$('.wcard', form);
+  const dots = $$('.wiz-progress i', form);
+  const prev = $('.prev', form);
+  const next = $('.next', form);
+  const save = $('.save', form);
+  let cur = 0;
+
+  function show(i, dir = 1) {
+    cur = Math.max(0, Math.min(cards.length - 1, i));
+    secs.forEach((s, k) => {
+      s.hidden = k !== cur;
+      s.classList.remove('in-left', 'in-right');
+    });
+    void secs[cur].offsetWidth;
+    secs[cur].classList.add(dir > 0 ? 'in-right' : 'in-left');
+    dots.forEach((d, k) => d.classList.toggle('on', k <= cur));
+    prev.style.visibility = cur === 0 ? 'hidden' : 'visible';
+    const last = cur === cards.length - 1;
+    next.hidden = last;
+    save.hidden = !last;
+    cards[cur].onShow?.(secs[cur]);
+    window.scrollTo({ top: 0 });
+  }
+
+  prev.addEventListener('click', () => show(cur - 1, -1));
+  next.addEventListener('click', () => show(cur + 1, 1));
+  dots.forEach((d) => d.addEventListener('click', () => show(+d.dataset.i, +d.dataset.i >= cur ? 1 : -1)));
+
+  // 좌우 스와이프 (입력칸 안에서는 무시)
+  let sx = null, sy = 0;
+  form.addEventListener('touchstart', (e) => {
+    if (e.target.closest('input, textarea')) return (sx = null);
+    sx = e.touches[0].clientX;
+    sy = e.touches[0].clientY;
+  }, { passive: true });
+  form.addEventListener('touchend', (e) => {
+    if (sx == null) return;
+    const dx = e.changedTouches[0].clientX - sx;
+    const dy = e.changedTouches[0].clientY - sy;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) show(cur + (dx < 0 ? 1 : -1), dx < 0 ? 1 : -1);
+    sx = null;
+  });
+
+  show(0);
+  return { show };
+}
+
+function setMood(card, mood) {
+  const holder = $('.say-char', card);
+  if (holder) holder.innerHTML = character(holder.dataset.char, mood);
+}
+
 // ───────────────────────── 기록 작성/수정 ─────────────────────────
 async function renderForm(id) {
   const entry = id ? await db.get(id) : null;
@@ -125,65 +198,112 @@ async function renderForm(id) {
   const e = entry || {};
   let photo = e.photo || null;
 
-  setTitle(entry ? '기록 수정' : '지금 무엇을 먹으려 하나요?');
-  view.innerHTML = `
-    <form class="form" novalidate>
-      ${entry ? '' : `<p class="intro">먹기 <b>전</b>이나 먹는 <b>도중</b>에 기록하는 것이 가장 좋아요. 다 채우지 않아도 괜찮아요.</p>`}
-
-      <section class="card">
-        <h2><span class="num">1</span>시간</h2>
-        <input type="datetime-local" name="time" value="${esc(e.time || nowLocal())}" required />
-      </section>
-
-      <section class="card">
-        <h2><span class="num">2</span>먹은 것 (사진)</h2>
-        <label class="photo-drop">
-          <input type="file" accept="image/*" capture="environment" name="photo" hidden />
-          <div class="photo-preview">${photo ? `<img src="${photoUrl(photo)}" alt="먹은 것 사진" />` : '<span>📷 탭해서 사진 찍기</span>'}</div>
-        </label>
-        <button type="button" class="link remove-photo" ${photo ? '' : 'hidden'}>사진 지우기</button>
-        <input type="text" name="food" placeholder="무엇을, 얼마나? (예: 감자칩 한 봉지)" value="${esc(e.food)}" />
-      </section>
-
-      <section class="card">
-        <h2><span class="num">3</span>직전 상황</h2>
-        <p class="hint">어디서, 무엇을 하고 있었나요?</p>
-        ${chips('place', PLACES, e.place ? [e.place] : [], false)}
-        ${chips('activity', ACTIVITIES, e.activity || [])}
-        <textarea name="situation" rows="2" placeholder="방금 무슨 일이 있었나요? (예: 상사에게 지적받고 자리에 돌아옴)">${esc(e.situation)}</textarea>
-        <h3>몸의 배고픔</h3>
-        ${scale('hunger', e.hunger, '전혀 안 고픔', '매우 고픔')}
-      </section>
-
-      <section class="card">
-        <h2><span class="num">4</span>느낌</h2>
-        <p class="hint">지금 어떤 감정이 드나요? 여러 개 골라도 돼요.</p>
-        ${chips('emotions', EMOTIONS, e.emotions || [])}
-        <h3>감정의 강도</h3>
-        ${scale('intensity', e.intensity, '약함', '매우 강함')}
-        <textarea name="feelingNote" rows="2" placeholder="떠오르는 생각이나 몸의 느낌 (예: '오늘 하루 망했어', 가슴이 답답함)">${esc(e.feelingNote)}</textarea>
-      </section>
-
-      <section class="card">
-        <h2><span class="num">5</span>기대</h2>
-        <p class="hint">이걸 먹으면 어떻게 될 거라고 기대하나요?</p>
-        ${chips('expectations', EXPECTATIONS, e.expectations || [])}
-        <textarea name="expectationNote" rows="2" placeholder="먹고 나면 ~할 것 같다">${esc(e.expectationNote)}</textarea>
-      </section>
-
-      <section class="card">
-        <h2><span class="num">6</span>먹는 양을 조절할 수 있었나요?</h2>
-        <p class="hint">먹은 뒤에 표시해도 괜찮아요.</p>
-        ${chips('loc', Object.values(LOC), e.loc ? [LOC[e.loc]] : [], false)}
-      </section>
-
-      <div class="actions sticky">
-        <button type="submit" class="primary">저장하기</button>
-      </div>
-    </form>`;
-
+  setTitle(entry ? '기록 고치기' : '간식 기록');
+  view.innerHTML = '<form novalidate></form>';
   const form = $('form', view);
+
+  wizard(
+    form,
+    [
+      {
+        char: 'cookie', mood: 'happy',
+        say: entry ? '어떤 걸 고칠까?' : '안녕! 지금 간식 먹으려는 거지?<br/>언제, 뭘 먹는지 알려줘',
+        body: `
+          <input type="datetime-local" name="time" value="${esc(e.time || nowLocal())}" />
+          <label class="photo-drop">
+            <input type="file" accept="image/*" capture="environment" name="photo" hidden />
+            <div class="photo-preview">${photo ? `<img src="${photoUrl(photo)}" alt="먹은 것 사진" />` : '<span>📷 톡! 눌러서 사진 찍기</span>'}</div>
+          </label>
+          <button type="button" class="link remove-photo" ${photo ? '' : 'hidden'}>사진 지우기</button>
+          <input type="text" name="food" placeholder="무엇을, 얼마나? (예: 감자칩 한 봉지)" value="${esc(e.food)}" />`,
+      },
+      {
+        char: 'chips', mood: 'curious',
+        say: '방금 전엔 어디서<br/>뭐 하고 있었어?',
+        body: `
+          <h3>어디서?</h3>
+          ${chips('place', PLACES, e.place ? [e.place] : [], false)}
+          <h3>뭐 하고 있었어?</h3>
+          ${chips('activity', ACTIVITIES, e.activity || [])}
+          <textarea name="situation" rows="2" placeholder="방금 무슨 일이 있었어? (예: 상사에게 지적받고 자리에 돌아옴)">${esc(e.situation)}</textarea>`,
+      },
+      {
+        char: 'donut', mood: 'curious',
+        say: '솔직히…<br/>배는 얼마나 고파?',
+        body: `
+          ${scale('hunger', e.hunger, '전혀 안 고파', '엄청 고파')}
+          <p class="react" data-react="hunger"></p>`,
+      },
+      {
+        char: 'icecream', mood: 'curious',
+        say: '지금 마음은 어때?<br/>여러 개 골라도 돼',
+        body: `
+          ${chips('emotions', EMOTIONS, e.emotions || [])}
+          <h3>그 마음, 얼마나 커?</h3>
+          ${scale('intensity', e.intensity, '살짝', '아주 크게')}
+          <textarea name="feelingNote" rows="2" placeholder="떠오르는 생각이나 몸의 느낌 (예: '오늘 하루 망했어', 가슴이 답답함)">${esc(e.feelingNote)}</textarea>`,
+      },
+      {
+        char: 'choco', mood: 'curious',
+        say: '나를 먹으면… 어떻게 될 것 같아?<br/>솔직하게 말해줘!',
+        body: `
+          ${chips('expectations', EXPECTATIONS, e.expectations || [])}
+          <textarea name="expectationNote" rows="2" placeholder="먹고 나면 ~할 것 같아">${esc(e.expectationNote)}</textarea>`,
+      },
+      {
+        char: 'cookie', mood: 'calm',
+        say: '먹는 양은 조절할 수 있었어?<br/><small>먹고 나서 골라도 괜찮아</small>',
+        body: chips('loc', Object.values(LOC), e.loc ? [LOC[e.loc]] : [], false),
+      },
+      {
+        char: 'chips', mood: 'happy',
+        say: '적어줘서 고마워!<br/>이렇게 알아차리는 게 제일 어려운 거야',
+        body: `${gang('happy')}<div class="summary"></div>`,
+        onShow: (card) => {
+          const fd = new FormData(form);
+          const parts = [
+            ['🕐', (fd.get('time') || '').replace('T', ' ')],
+            ['🍪', fd.get('food')],
+            ['📍', [readChips(form, 'place')[0], ...readChips(form, 'activity')].filter(Boolean).join(', ')],
+            ['💭', readChips(form, 'emotions').join(', ')],
+            ['✨', readChips(form, 'expectations').join(', ')],
+          ].filter(([, v]) => v);
+          $('.summary', card).innerHTML = parts.map(([k, v]) => `<div><span>${k}</span>${esc(v)}</div>`).join('');
+        },
+      },
+    ],
+    entry ? '고친 내용 저장' : '저장하기'
+  );
   wireChoices(form);
+
+  // 캐릭터가 답에 반응한다
+  const hungerCard = $('[data-react=hunger]', form);
+  const reactHunger = () => {
+    const h = readScale(form, 'hunger');
+    const card = hungerCard.closest('.wcard');
+    if (h == null) hungerCard.textContent = '';
+    else if (h <= 3) {
+      hungerCard.textContent = '음, 배가 고픈 건 아니구나. 그럼 다른 이유가 있을지도 몰라!';
+      setMood(card, 'curious');
+    } else if (h >= 7) {
+      hungerCard.textContent = '진짜 배고프구나! 몸이 보내는 신호야.';
+      setMood(card, 'happy');
+    } else {
+      hungerCard.textContent = '적당히 고프구나. 알려줘서 고마워.';
+      setMood(card, 'calm');
+    }
+  };
+  const reactIntensity = () => {
+    const v = readScale(form, 'intensity');
+    if (v == null) return;
+    setMood($('.scale[data-name=intensity]', form).closest('.wcard'), v >= 7 ? 'worried' : v >= 4 ? 'curious' : 'calm');
+  };
+  form.addEventListener('click', (ev) => {
+    if (ev.target.closest('.scale[data-name=hunger]')) reactHunger();
+    if (ev.target.closest('.scale[data-name=intensity]')) reactIntensity();
+  });
+  reactHunger();
+  reactIntensity();
 
   const fileInput = $('input[name=photo]', form);
   const preview = $('.photo-preview', form);
@@ -199,7 +319,7 @@ async function renderForm(id) {
   removeBtn.addEventListener('click', () => {
     photo = null;
     fileInput.value = '';
-    preview.innerHTML = '<span>📷 탭해서 사진 찍기</span>';
+    preview.innerHTML = '<span>📷 톡! 눌러서 사진 찍기</span>';
     removeBtn.hidden = true;
   });
 
@@ -228,62 +348,67 @@ async function renderForm(id) {
       after: e.after || null,
     };
     await db.put(saved);
-    toast(entry ? '수정했어요' : '기록했어요. 잘하셨어요 🌱');
+    toast(entry ? '고쳤어요' : '기록 완료! 잘했어 🌸');
     go(`#/entry/${saved.id}`);
   });
 }
 
 // ───────────────────────── 사후 돌아보기 ─────────────────────────
+const MET = ['전혀 아니야', '조금', '반반', '꽤', '완전히'];
+
 async function renderAfter(id) {
   const e = await db.get(id);
   if (!e) return go('#/list');
   const a = e.after || {};
   setTitle('먹고 난 뒤 돌아보기');
+  view.innerHTML = '<form novalidate></form>';
+  const form = $('form', view);
 
   const expected = [...(e.expectations || []), e.expectationNote].filter(Boolean);
-  view.innerHTML = `
-    <form class="form" novalidate>
-      <section class="card quote">
-        <p class="meta">${fmtDate(e.time)} ${fmtTime(e.time)} · ${esc(e.food || '간식')}</p>
-        <p>먹기 전에 이렇게 기대했어요</p>
-        <blockquote>${expected.length ? expected.map(esc).join(' · ') : '기대를 기록하지 않았어요'}</blockquote>
-      </section>
-
-      <section class="card">
-        <h2>실제로 그 기대가 이루어졌나요?</h2>
-        ${chips('met', ['전혀 아니다', '조금', '반반', '꽤', '완전히'], a.met ? [['전혀 아니다', '조금', '반반', '꽤', '완전히'][a.met - 1]] : [], false)}
-        <h3>그 효과는 얼마나 갔나요?</h3>
-        ${chips('lasted', ['몇 분', '30분 정도', '1시간 이상', '효과 없었음'], a.lasted ? [a.lasted] : [], false)}
-      </section>
-
-      <section class="card">
-        <h2>지금 기분은 어떤가요?</h2>
-        ${chips('feelings', AFTER_FEELINGS, a.feelings || [])}
-        <h3>먹기 전 감정(${esc((e.emotions || []).join(', ') || '기록 없음')})은 지금 얼마나 강한가요?</h3>
-        ${scale('intensityAfter', a.intensityAfter, '사라짐', '매우 강함')}
-        ${e.intensity != null ? `<p class="hint">먹기 전 강도: ${e.intensity}</p>` : ''}
-      </section>
-
-      <section class="card">
-        <h2>다음에 비슷한 상황이 오면</h2>
-        <textarea name="thought" rows="2" placeholder="그때 머릿속에 있던 생각을 다르게 바라본다면? (예: '먹어야 풀린다' → '15분 기다리면 충동은 줄어든다')">${esc(a.thought)}</textarea>
-        <textarea name="alternative" rows="2" placeholder="먹는 것 대신 해볼 수 있는 일 (예: 산책 10분, 친구에게 메시지, 샤워)">${esc(a.alternative)}</textarea>
-      </section>
-
-      <div class="actions sticky">
-        <button type="submit" class="primary">돌아보기 저장</button>
-      </div>
-    </form>`;
-
-  const form = $('form', view);
+  wizard(
+    form,
+    [
+      {
+        char: 'choco', mood: 'curious',
+        say: `아까 나한테 이걸 기대했잖아…<br/><b>${expected.length ? expected.map(esc).join(' · ') : '(기대를 안 적었어)'}</b><br/>진짜 그렇게 됐어?`,
+        body: `
+          ${chips('met', MET, a.met ? [MET[a.met - 1]] : [], false)}
+          <h3>그 효과는 얼마나 갔어?</h3>
+          ${chips('lasted', ['몇 분', '30분 정도', '1시간 이상', '효과 없었음'], a.lasted ? [a.lasted] : [], false)}`,
+      },
+      {
+        char: 'icecream', mood: 'calm',
+        say: '지금 기분은 어때?',
+        body: `
+          ${chips('feelings', AFTER_FEELINGS, a.feelings || [])}
+          <h3>먹기 전 마음(${esc((e.emotions || []).join(', ') || '기록 없음')})은 지금 얼마나 커?</h3>
+          ${scale('intensityAfter', a.intensityAfter, '사라졌어', '아주 크게')}
+          ${e.intensity != null ? `<p class="hint">먹기 전에는 ${e.intensity}였어</p>` : ''}`,
+      },
+      {
+        char: 'donut', mood: 'happy',
+        say: '다음에 또 이런 상황이 오면<br/>우리 뭘 해볼까?',
+        body: `
+          <textarea name="thought" rows="3" placeholder="그때 생각을 다르게 바라본다면? (예: '먹어야 풀린다' → '15분 기다리면 충동은 줄어든다')">${esc(a.thought)}</textarea>
+          <textarea name="alternative" rows="2" placeholder="먹는 것 대신 해볼 일 (예: 산책 10분, 친구에게 메시지, 샤워)">${esc(a.alternative)}</textarea>`,
+      },
+      {
+        char: 'cookie', mood: 'happy',
+        say: '솔직하게 말해줘서 고마워.<br/>우리도 진짜 궁금했거든!',
+        body: gang('happy'),
+      },
+    ],
+    '돌아보기 저장'
+  );
   wireChoices(form);
+
   form.addEventListener('submit', async (ev) => {
     ev.preventDefault();
     const fd = new FormData(form);
     const metLabel = readChips(form, 'met')[0];
     e.after = {
       at: new Date().toISOString(),
-      met: metLabel ? ['전혀 아니다', '조금', '반반', '꽤', '완전히'].indexOf(metLabel) + 1 : null,
+      met: metLabel ? MET.indexOf(metLabel) + 1 : null,
       lasted: readChips(form, 'lasted')[0] || '',
       feelings: readChips(form, 'feelings'),
       intensityAfter: readScale(form, 'intensityAfter'),
@@ -291,7 +416,7 @@ async function renderAfter(id) {
       alternative: fd.get('alternative').trim(),
     };
     await db.put(e);
-    toast('돌아보기를 저장했어요');
+    toast('돌아보기 저장 완료!');
     go(`#/entry/${e.id}`);
   });
 }
@@ -340,7 +465,7 @@ async function renderEntry(id) {
             </dl>
           </section>`
         : `<section class="card nudge">
-            <p>먹고 30분쯤 지났다면, 기대했던 효과가 실제로 있었는지 돌아봐요.</p>
+            ${say('choco', 'curious', '먹고 30분쯤 지났어?<br/>내가 기대만큼 도움이 됐는지 궁금해!')}
             <a class="button primary" href="#/after/${e.id}">돌아보기</a>
           </section>`
     }
@@ -363,7 +488,7 @@ async function renderList() {
   const list = await db.all();
   setTitle('나의 간식 일지');
   if (!list.length) {
-    view.innerHTML = `<div class="empty"><p>아직 기록이 없어요.</p><p>간식을 먹을 때마다 기록하면<br/>나만의 패턴이 보이기 시작해요.</p><a class="button primary" href="#/new">첫 기록 남기기</a></div>`;
+    view.innerHTML = `<div class="empty">${gang('curious')}<p>아직 기록이 없어요.</p><p>간식을 먹을 때마다 기록하면<br/>나만의 패턴이 보이기 시작해요.</p><a class="button primary" href="#/new">첫 기록 남기기</a></div>`;
     return;
   }
   const byDay = new Map();
@@ -380,7 +505,7 @@ async function renderList() {
         ${items
           .map(
             (e) => `<li><a href="#/entry/${e.id}" class="entry">
-              <div class="thumb">${e.photo ? `<img src="${photoUrl(e.photo)}" alt="" loading="lazy" />` : '🍪'}</div>
+              <div class="thumb">${e.photo ? `<img src="${photoUrl(e.photo)}" alt="" loading="lazy" />` : character('cookie', e.loc === 'yes' ? 'worried' : 'happy')}</div>
               <div class="body">
                 <div class="line1"><b>${fmtTime(e.time)}</b> ${esc(e.food || '')}</div>
                 <div class="line2">${[e.place, ...(e.emotions || [])].filter(Boolean).slice(0, 4).map((t) => `<span class="tag">${esc(t)}</span>`).join('')}</div>
@@ -459,7 +584,7 @@ async function renderInsights() {
 
     ${
       !n
-        ? '<div class="empty"><p>이 기간에는 기록이 없어요.</p></div>'
+        ? `<div class="empty">${character('donut', 'calm', 'big')}<p>이 기간에는 기록이 없어요.</p></div>`
         : `
     <div class="stats">
       <div class="stat"><b>${n}</b><span>간식 횟수</span></div>
@@ -547,6 +672,7 @@ async function renderSettings() {
     </section>
 
     <section class="card about">
+      ${gang('happy')}
       <h2>이 앱은</h2>
       <p>폭식 치료에 쓰이는 인지행동치료(CBT)의 <b>자기관찰 기록</b>을 돕습니다. 먹기 직전의 상황·느낌·생각(기대)을 적고, 먹은 뒤 그 기대가 맞았는지 확인하면서 "먹으면 나아질 것"이라는 자동적 사고를 알아차리고 다르게 반응하는 연습을 할 수 있어요.</p>
       <ul>
