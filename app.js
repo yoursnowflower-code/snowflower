@@ -3,11 +3,11 @@ import { character } from './characters.js';
 
 // ───────────────────────── 선택지 ─────────────────────────
 // 인지행동치료(CBT)의 자기관찰 기록지 항목을 바탕으로 구성:
-// 선행 사건(상황) → 신체/정서 상태(배고픔·느낌) → 인지(기대) → 행동(먹은 것)
+// 선행 사건(상황) → 신체/정서 상태(먹고 싶음·감정) → 인지(기대) → 행동(먹은 것)
 const PLACES = ['집', '회사·학교', '이동 중', '카페·식당', '편의점·마트', '기타'];
-const ACTIVITIES = ['일·공부 중', '쉬는 중', 'TV·폰 보는 중', '혼자 있음', '누군가와 함께', '다툼·갈등 후', '식사 직후', '잠들기 전', '할 일 미루는 중', '음식을 봄·냄새 맡음'];
-const EMOTIONS = ['스트레스', '불안', '지루함', '외로움', '슬픔·우울', '짜증·화', '피곤함', '허전함', '특정 맛이 당김', '죄책감', '기쁨·신남', '편안함', '보상받고 싶음'];
-const EXPECTATIONS = ['기분이 나아질 것', '스트레스가 풀릴 것', '위로받을 것', '나에게 주는 보상', '지루함이 사라질 것', '에너지가 생길 것', '잠깐 잊을 수 있을 것', '배고픔 해결', '그냥 습관처럼', '조금만 먹고 멈출 수 있을 것'];
+const ACTIVITIES = ['일·공부 중', '쉬는 중', '애들 챙기고 한숨 돌릴 때', 'TV·폰 보는 중', '혼자 있음', '누군가와 함께', '다툼·갈등 후', '식사 직후', '잠들기 전', '할 일 미루는 중', '음식을 봄·냄새 맡음'];
+const EMOTIONS = ['입이 심심함', '단거 땡김', '허전함', '적적함', '지루함', '스트레스', '불안', '피곤함', '외로움', '짜증·화', '우울함', '죄책감', '보상받고 싶음', '기쁨·신남'];
+const EXPECTATIONS = ['입이 덜 심심할 것', '단 게 채워질 것', '허전함이 채워질 것', '적적함이 덜할 것', '지루함이 사라질 것', '스트레스가 풀릴 것', '불안이 가라앉을 것', '기운이 날 것', '나에게 주는 보상', '그냥 습관처럼', '조금만 먹고 멈출 수 있을 것'];
 const LOC = { yes: '조절 못 했다', unsure: '잘 모르겠다', no: '조절했다' }; // 예전 기록 표시용
 const SAT_MAX = 7;
 
@@ -131,9 +131,9 @@ function wireChoices(root) {
 
 // 감정·점수 → 캐릭터 표정
 const EMOTION_MOOD = {
-  스트레스: 'worried', 불안: 'worried', '짜증·화': 'worried', 죄책감: 'sad', '슬픔·우울': 'sad', 외로움: 'sad', 공허함: 'sad', 허전함: 'sad', '특정 맛이 당김': 'curious',
-  지루함: 'curious', 피곤함: 'calm', '기쁨·신남': 'happy', 편안함: 'calm', '보상받고 싶음': 'curious',
-};
+  '입이 심심함': 'curious', '단거 땡김': 'curious', 허전함: 'sad', 적적함: 'sad', 지루함: 'curious', 스트레스: 'worried', 불안: 'worried',
+  피곤함: 'calm', 외로움: 'sad', '짜증·화': 'worried', 우울함: 'sad', 죄책감: 'sad', '보상받고 싶음': 'curious', '기쁨·신남': 'happy',
+}
 
 // 먹고 난 후: 감정별 만족도 (1~7칸 채움)
 const avgSat = (sat) => {
@@ -307,7 +307,7 @@ async function renderForm(id) {
       },
       {
         char: 'icecream', mood: 'curious',
-        title: '느낌',
+        title: '감정',
         body: `
           ${chips('emotions', EMOTIONS, e.emotions || [])}
           <textarea name="feelingNote" rows="2" placeholder="떠오른 생각·몸의 느낌 (선택)">${esc(e.feelingNote)}</textarea>`,
@@ -404,9 +404,9 @@ async function renderAfter(id) {
         body: `
           <p class="hint center">${fmtTime(e.time)} · ${esc(e.food || '간식')}</p>
           ${emos.length
-            ? `<p class="hint center">고른 느낌이 얼마나 채워졌나요? (최대 +${SAT_MAX})</p>
+            ? `<p class="hint center">고른 감정이 얼마나 채워졌나요? (최대 +${SAT_MAX})</p>
                <div class="sat-list">${emos.map((em, i) => satRow(em, (e.after || {})[em], i)).join('')}</div>`
-            : '<p class="hint center">먹기 전에 고른 느낌이 없어요.</p>'}
+            : '<p class="hint center">먹기 전에 고른 감정이 없어요.</p>'}
           <h3>폭식이었나요?</h3>
           ${chips('binge', ['폭식이었어요'], e.binge ? ['폭식이었어요'] : [], false)}`,
       },
@@ -446,7 +446,7 @@ async function renderEntry(id) {
         ${row('하던 일', e.activity)}
         ${row('직전 상황', e.situation)}
         ${row('먹고 싶음', (e.craving ?? e.hunger) != null ? `${e.craving ?? e.hunger} / 10` : '')}
-        ${row('느낌', e.emotions)}
+        ${row('감정', e.emotions)}
         ${row('생각·몸의 느낌', e.feelingNote)}
         ${row('기대', e.expectations)}
         ${row('기대 메모', e.expectationNote)}
@@ -610,7 +610,7 @@ async function renderInsights() {
   const cravings = list.map((e) => e.craving ?? e.hunger).filter((v) => v != null);
   const avgCraving = cravings.length ? cravings.reduce((a, b) => a + b, 0) / cravings.length : null;
   const recDays = new Set(list.map((e) => e.time.slice(0, 10))).size;
-  // 감정별 평균 만족도: 그 느낌이 먹어서 실제로 얼마나 채워졌는지
+  // 감정별 평균 만족도: 그 감정이 먹어서 실제로 얼마나 채워졌는지
   const satBy = new Map();
   for (const e of list) for (const [k, v] of Object.entries(e.after || {})) {
     const t = satBy.get(k) || { sum: 0, n: 0 };
@@ -650,7 +650,7 @@ async function renderInsights() {
     <section class="card"><h2>감정</h2>${bars(count(list, (e) => e.emotions), n)}</section>
     <section class="card"><h2>먹고 난 후 만족도</h2>${
       satRows.length
-        ? `<p class="hint">느낌별 평균 (최대 +${SAT_MAX})</p><ul class="sat-stats">${satRows.map(([k, avg, c]) => `<li><span class="label">${esc(k)}</span>${satBar(Math.round(avg), SNACKS.length - 1)}<small>${c}회</small></li>`).join('')}</ul>`
+        ? `<p class="hint">감정별 평균 (최대 +${SAT_MAX})</p><ul class="sat-stats">${satRows.map(([k, avg, c]) => `<li><span class="label">${esc(k)}</span>${satBar(Math.round(avg), SNACKS.length - 1)}<small>${c}회</small></li>`).join('')}</ul>`
         : '<p class="hint">"먹고 난 후"를 기록하면 여기에 보여요.</p>'
     }</section>
     <section class="card"><h2>상황</h2>${bars(count(list, (e) => e.activity), n)}</section>
@@ -719,7 +719,7 @@ async function renderSettings() {
 
     <section class="card about">
       <h2>이 앱은</h2>
-      <p>폭식 치료에 쓰이는 인지행동치료(CBT)의 <b>자기관찰 기록</b>을 돕습니다. 먹기 직전의 상황·느낌·생각(기대)을 적으며 "먹으면 나아질 것"이라는 자동적 사고와 나만의 패턴을 알아차리도록 도와요.</p>
+      <p>폭식 치료에 쓰이는 인지행동치료(CBT)의 <b>자기관찰 기록</b>을 돕습니다. 먹기 직전의 상황·감정·생각(기대)을 적으며 "먹으면 나아질 것"이라는 자동적 사고와 나만의 패턴을 알아차리도록 도와요.</p>
       <ul>
         <li>먹기 <b>직전·도중</b>에 바로 적을수록 정확해요.</li>
         <li>판단하지 말고 있는 그대로 적어요. 기록 자체가 이미 잘하고 있는 거예요.</li>
@@ -730,7 +730,7 @@ async function renderSettings() {
 
   $('#csv').addEventListener('click', async () => {
     const list = (await db.all()).reverse();
-    const head = ['시간', '먹은 것', '장소', '하던 일', '직전 상황', '먹고 싶음', '느낌', '생각·몸의 느낌', '기대', '기대 메모', '먹고 난 후', '폭식'];
+    const head = ['시간', '먹은 것', '장소', '하던 일', '직전 상황', '먹고 싶음', '감정', '생각·몸의 느낌', '기대', '기대 메모', '먹고 난 후', '폭식'];
     const rows = list.map((e) => {
       return [e.time.replace('T', ' '), e.food, e.place, e.activity, e.situation, e.craving ?? e.hunger, e.emotions, e.feelingNote, e.expectations, e.expectationNote, Object.entries(e.after || {}).map(([k, v]) => `${k} +${v}`), e.binge ? 'O' : ''].map(csvCell).join(',');
     });
