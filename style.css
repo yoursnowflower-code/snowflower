@@ -216,8 +216,8 @@ dd { margin: 0; white-space: pre-wrap; }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
 
 /* ───────── 손그림 캐릭터 테마 ───────── */
-body { font-family: "Gowun Dodum", -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; }
-h1, h2, h3, .bubble, .chip, button, .button, .tabbar a, .stat b, .day { font-family: "Jua", "Gowun Dodum", sans-serif; font-weight: 400 !important; }
+body { font-family: "Gamja Flower", -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; }
+h1, h2, h3, .bubble, .chip, button, .button, .tabbar a, .stat b, .day { font-family: "Gamja Flower", sans-serif; font-weight: 400 !important; }
 .topbar { border-bottom: 1.5px solid var(--soft-line); }
 .topbar h1 { font-size: 22px; }
 
@@ -268,7 +268,7 @@ button:active, .button:active { transform: translateY(2px); box-shadow: none; }
 .thumb { border: 2px solid var(--line); background: var(--accent-soft); }
 .thumb .char { width: 46px; height: 46px; }
 .hero { border: 2.5px solid var(--line); box-shadow: var(--shadow); }
-#toast { background: #4b3a4f; color: #fff; font-family: "Jua", sans-serif; }
+#toast { background: #4b3a4f; color: #fff; font-family: "Gamja Flower", sans-serif; }
 
 /* 캐릭터와 말풍선 */
 .char { width: 96px; height: 96px; flex: 0 0 auto; overflow: visible; }
@@ -307,7 +307,7 @@ button:active, .button:active { transform: translateY(2px); box-shadow: none; }
 .wcard.in-left { animation: flipL .32s ease-out; }
 @keyframes flipR { from { opacity: 0; transform: translateX(32px); } }
 @keyframes flipL { from { opacity: 0; transform: translateX(-32px); } }
-.react { font-family: "Jua", sans-serif; font-size: 17px; color: var(--warn); min-height: 1.4em; margin: 16px 4px 0; text-align: center; }
+.react { font-family: "Gamja Flower", sans-serif; font-size: 17px; color: var(--warn); min-height: 1.4em; margin: 16px 4px 0; text-align: center; }
 .wiz-nav {
   position: sticky; bottom: calc(var(--tabbar) + env(safe-area-inset-bottom) + 8px);
   display: grid; grid-template-columns: 1fr 2fr; gap: 10px; margin-top: 16px;
@@ -333,7 +333,7 @@ button:active, .button:active { transform: translateY(2px); box-shadow: none; }
 @keyframes pop { 50% { transform: scale(1.12); } }
 .whead h2 { font-size: 22px; margin: 0; justify-content: center; }
 .wbody h3 small { color: var(--muted); }
-.expected { text-align: center; background: var(--accent-soft); border-radius: 12px; padding: 10px; margin: 0 0 14px; font-family: "Jua", sans-serif; font-size: 17px; }
+.expected { text-align: center; background: var(--accent-soft); border-radius: 12px; padding: 10px; margin: 0 0 14px; font-family: "Gamja Flower", sans-serif; font-size: 17px; }
 .face-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
 .dot.face { aspect-ratio: auto; border-radius: 14px; padding: 4px 0 2px; display: grid; justify-items: center; }
 .dot.face .char { width: 100%; height: auto; max-width: 52px; filter: none; }
@@ -368,3 +368,32 @@ button:active, .button:active { transform: translateY(2px); box-shadow: none; }
 .cal-day .entry { box-shadow: none; border-width: 1.5px; }
 .stat b small { font-size: 14px; color: var(--muted); }
 .center { text-align: center; }
+
+/* 감자꽃체는 획이 가늘어 한 단계 크게 */
+body { font-size: 18px; }
+.chip { font-size: 16px; }
+.hint, .scale-labels, dt { font-size: 15px; }
+
+/* 먹고 난 후: 7칸 채움 */
+.sat-list { display: grid; gap: 14px; }
+.sat { display: grid; grid-template-columns: 1fr auto; gap: 6px 10px; align-items: center; }
+.sat-label { font-size: 18px; }
+.sat-val { font-size: 20px; color: var(--warn); min-width: 2.2em; text-align: right; }
+.sat-cells { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.sat .sat-cells { grid-row: 2; }
+.sat .cell {
+  height: 34px; padding: 0; box-shadow: none; border: 1.5px solid var(--line);
+  border-radius: 8px; background: var(--surface); transition: background .12s;
+}
+.sat .cell.on { background: var(--pink); }
+.sat .cell:active { transform: none; }
+.sat-cells.mini { display: inline-grid; width: 120px; gap: 2px; vertical-align: middle; }
+.sat-cells.mini i { height: 10px; border: 1px solid var(--line); border-radius: 3px; background: var(--surface); }
+.sat-cells.mini i.on { background: var(--pink); }
+.sat-stats { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.sat-stats li { display: grid; grid-template-columns: 6.5em 1fr auto auto; gap: 8px; align-items: center; }
+.sat-stats .sat-cells.mini { width: 100%; }
+.sat-stats small { color: var(--muted); }
+.sat-avg { font-size: 14px; color: var(--warn); align-self: center; }
+.sat-stats .sat-cells.mini { grid-column: auto; }
+.sat-stats li > b { font-size: 15px; }

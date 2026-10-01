@@ -1,5 +1,5 @@
 // 오프라인 사용을 위한 단순 캐시 우선 서비스 워커
-const CACHE = 'snackjournal-v5';
+const CACHE = 'snackjournal-v6';
 const ASSETS = ['./', './index.html', './style.css', './app.js', './db.js', './characters.js', './manifest.webmanifest', './icons/icon.svg'];
 
 self.addEventListener('install', (e) => {
