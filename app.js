@@ -583,8 +583,8 @@ function calendar(all) {
     <div class="cal-grid wk">${WEEK.map((w) => `<div>${w}</div>`).join('')}</div>
     <div class="cal-grid">${cells.join('')}</div>
     <div class="cal-legend">
-      <span>${dayFace(true)} 폭식한 날 <b>${bingeDays}</b></span>
-      <span>${dayFace(false)} 폭식 없는 날 <b>${okDays}</b></span>
+      <span>${dayFace(true)} 폭식이 <small>폭식한 날</small> <b>${bingeDays}</b></span>
+      <span>${dayFace(false)} 건강이 <small>폭식 없는 날</small> <b>${okDays}</b></span>
       <span class="faded-legend">흐린 날 = 먹고 난 후 미입력</span>
     </div>
     ${

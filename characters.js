@@ -103,31 +103,40 @@ export function gang(mood = 'happy') {
   return `<div class="gang">${['chips', 'cookie', 'icecream', 'donut', 'choco'].map((id, i) => character(id, i % 2 ? 'calm' : mood)).join('')}</div>`;
 }
 
-// 달력용 작은 얼굴: 같은 크기의 쿠키 얼굴, 표정·소품으로 구분
-// 폭식한 날 = 배부른 쿠키 (빵빵한 볼, 입가 부스러기), 폭식 없는 날 = 머리띠 두른 운동하는 쿠키
-const cookieBase = (fill) => `
-  <circle cx="20" cy="21" r="16.5" fill="${fill}" stroke="${INK}" stroke-width="2.4"/>
-  <circle cx="9" cy="27" r="1.5" fill="#7a4a32"/><circle cx="31" cy="28" r="1.6" fill="#7a4a32"/>`;
+// 달력 캐릭터: 폭식이(폭식한 날) / 건강이(폭식 없는 날)
+// 같은 쿠키 몸통 크기에, 작은 팔다리와 소품으로 성격을 보여준다.
+const CHIP = '#7a4a32';
+const PINK = '#ff8fab';
+
+// 폭식이: 한입 베어먹힌 통통 쿠키, 혀 날름, 입가 부스러기, 두 손으로 배를 감싸 쥠
+const POKSIK = `
+  <path d="M12 39 q-1 2.5 2.5 2.5 M28 39 q1 2.5 -2.5 2.5" fill="none" stroke="${INK}" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M21 4 C10 4 2.5 12 2.5 22 C2.5 32.5 10.5 39.5 21 39.5 C31.5 39.5 38.5 32 38.5 22 C38.5 19.5 38 17.5 37.3 15.6 a3.2 3.2 0 0 1 -3.9 -2.6 a3.2 3.2 0 0 1 -3.2 -3.7 a3.2 3.2 0 0 1 -3 -3.8 C25.5 4.5 23.4 4 21 4Z" fill="#e9b06a" stroke="${INK}" stroke-width="2.4" stroke-linejoin="round"/>
+  <circle cx="11" cy="12" r="1.6" fill="${CHIP}"/><circle cx="6.5" cy="27" r="1.4" fill="${CHIP}"/><circle cx="34" cy="28" r="1.5" fill="${CHIP}"/>
+  <path d="M10.5 17.5 l4.2 2.1 l-4.2 2.1 M27.5 17.5 l-4.2 2.1 l4.2 2.1" fill="none" stroke="${INK}" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>
+  <ellipse cx="9" cy="24.5" rx="3.4" ry="2.3" fill="${PINK}"/><ellipse cx="29" cy="24.5" rx="3.4" ry="2.3" fill="${PINK}"/>
+  <path d="M14.5 24 q4.5 4.5 9 0" fill="none" stroke="${INK}" stroke-width="2.1" stroke-linecap="round"/>
+  <path d="M19.4 26 q2.4 .4 2.5 3 q-2.5 1.2 -3.8 -1.3z" fill="#ff6f91" stroke="${INK}" stroke-width="1.2"/>
+  <circle cx="13" cy="29" r="1" fill="${CHIP}"/><circle cx="25.5" cy="29.5" r=".9" fill="${CHIP}"/><circle cx="23" cy="31.2" r=".7" fill="${CHIP}"/>
+  <path d="M8.5 31 q4 4.5 8 2.6 M29.5 31 q-4 4.5 -8 2.6" fill="none" stroke="${INK}" stroke-width="2.3" stroke-linecap="round"/>`;
+
+// 건강이: 동그란 쿠키, 하늘색 운동 머리띠, 두 팔 번쩍 화이팅, 운동화
+const GEONGANG = `
+  <path d="M15 38.5 l-1.5 2.5 h-3 M25 38.5 l1.5 2.5 h3" fill="none" stroke="${INK}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M6 20 q-4 -3 -3.5 -8 M34 20 q4 -3 3.5 -8" fill="none" stroke="${INK}" stroke-width="2.4" stroke-linecap="round"/>
+  <circle cx="2.6" cy="10.6" r="2" fill="#f4c98f" stroke="${INK}" stroke-width="1.8"/><circle cx="37.4" cy="10.6" r="2" fill="#f4c98f" stroke="${INK}" stroke-width="1.8"/>
+  <circle cx="20" cy="22" r="16.5" fill="#f4c98f" stroke="${INK}" stroke-width="2.4"/>
+  <circle cx="10" cy="28" r="1.5" fill="${CHIP}"/><circle cx="30.5" cy="29" r="1.5" fill="${CHIP}"/><circle cx="20" cy="33.5" r="1.2" fill="${CHIP}"/>
+  <path d="M4.2 15 Q20 9 35.8 15 L35.6 19.6 Q20 13.8 4.4 19.6 Z" fill="#4fa8dc" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M5 17.3 Q20 11.6 35 17.3" fill="none" stroke="#fff" stroke-width="1.3"/>
+  <circle cx="15" cy="23" r="1.9" fill="${INK}"/><circle cx="25" cy="23" r="1.9" fill="${INK}"/>
+  <path d="M14.5 27 q5.5 5.5 11 0" fill="none" stroke="${INK}" stroke-width="2.2" stroke-linecap="round"/>
+  <ellipse cx="10.5" cy="26" rx="2.4" ry="1.6" fill="#ff9fb8"/><ellipse cx="29.5" cy="26" rx="2.4" ry="1.6" fill="#ff9fb8"/>
+  <path d="M31.8 22.5 q-1.6 2.6 0 3.4 q1.6 -.8 0 -3.4z" fill="#9fd6f5" stroke="${INK}" stroke-width="1"/>`;
+
+export const DAY_CHARS = { binge: { name: '폭식이', svg: POKSIK }, ok: { name: '건강이', svg: GEONGANG } };
 
 export function dayFace(binge) {
-  return binge
-    ? `<svg class="dayface" viewBox="0 0 40 40" aria-label="폭식한 날">
-        <path d="M20 5.5 C29 5.5 35 11 37 19 C39.5 28 33 36.5 20 36.5 C7 36.5 0.5 28 3 19 C5 11 11 5.5 20 5.5Z" fill="#e9a65c" stroke="${INK}" stroke-width="2.4"/>
-        <path d="M11.5 31.5 q8.5 4.2 17 0" fill="none" stroke="${INK}" stroke-width="1.6" stroke-linecap="round" opacity=".55"/>
-        <circle cx="13" cy="10.5" r="1.5" fill="#7a4a32"/><circle cx="27.5" cy="10" r="1.4" fill="#7a4a32"/><circle cx="5.5" cy="22" r="1.3" fill="#7a4a32"/><circle cx="34.5" cy="23" r="1.4" fill="#7a4a32"/>
-        <ellipse cx="9" cy="23" rx="5.2" ry="4" fill="#ff8fab"/><ellipse cx="31" cy="23" rx="5.2" ry="4" fill="#ff8fab"/>
-        <path d="M14 18.5 q2.3 2 4.6 0 M21.4 18.5 q2.3 2 4.6 0" fill="none" stroke="${INK}" stroke-width="2.1" stroke-linecap="round"/>
-        <ellipse cx="20" cy="25.3" rx="2.4" ry="1.7" fill="${INK}"/>
-        <circle cx="15.5" cy="28.5" r="1.1" fill="#7a4a32"/><circle cx="24.5" cy="28.8" r="1" fill="#7a4a32"/><circle cx="20" cy="29.8" r=".9" fill="#7a4a32"/><circle cx="17.5" cy="27.2" r=".7" fill="#7a4a32"/>
-      </svg>`
-    : `<svg class="dayface" viewBox="0 0 40 40" aria-label="폭식 없는 날">
-        ${cookieBase('#f4c98f')}
-        <path d="M4.2 14 Q20 8 35.8 14 L35.6 18.6 Q20 12.8 4.4 18.6 Z" fill="#4fa8dc" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/>
-        <path d="M5 16.3 Q20 10.6 35 16.3" fill="none" stroke="#fff" stroke-width="1.3"/>
-        <path d="M35 15 l4 -3 M35.4 17 l4 1" stroke="${INK}" stroke-width="2" stroke-linecap="round"/>
-        <circle cx="15" cy="22" r="1.9" fill="${INK}"/><circle cx="25" cy="22" r="1.9" fill="${INK}"/>
-        <path d="M14.5 26 q5.5 5.5 11 0" fill="none" stroke="${INK}" stroke-width="2.2" stroke-linecap="round"/>
-        <ellipse cx="10.5" cy="25" rx="2.4" ry="1.6" fill="#ff9fb8"/><ellipse cx="29.5" cy="25" rx="2.4" ry="1.6" fill="#ff9fb8"/>
-        <path d="M31.5 22 q-1.6 2.6 0 3.4 q1.6 -0.8 0 -3.4z" fill="#9fd6f5" stroke="${INK}" stroke-width="1"/>
-      </svg>`;
+  const c = binge ? DAY_CHARS.binge : DAY_CHARS.ok;
+  return `<svg class="dayface" viewBox="0 0 40 43" role="img" aria-label="${c.name}">${c.svg}</svg>`;
 }

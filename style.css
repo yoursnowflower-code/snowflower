@@ -504,3 +504,10 @@ dd .sat-cells.mini + b, .sat-stats li > b { white-space: nowrap; }
 /* 수정 중에는 저장 버튼이 이전·다음 아래에 항상 */
 .wizard.always-save .wiz-nav { flex-wrap: wrap; }
 .wizard.always-save .wiz-nav .save { order: 3; flex: 1 1 100%; max-width: 332px; }
+.cal-legend .dayface { width: 26px; height: 28px; }
+.cal-legend small { color: var(--muted); }
+.day-cell .dayface { width: 78%; }
+.cal-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.day-cell { min-width: 0; overflow: hidden; }
+.day-cell .dayface { width: 80%; height: auto; max-height: 72%; }
+.cal-legend { flex-direction: column; align-items: center; gap: 4px; }
