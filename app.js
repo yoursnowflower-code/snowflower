@@ -1,14 +1,13 @@
 import { db } from './db.js';
-import { character, say, gang } from './characters.js';
+import { character } from './characters.js';
 
 // ───────────────────────── 선택지 ─────────────────────────
 // 인지행동치료(CBT)의 자기관찰 기록지 항목을 바탕으로 구성:
-// 선행 사건(상황) → 신체/정서 상태(배고픔·느낌) → 인지(기대) → 행동(먹은 것) → 결과(사후 돌아보기)
+// 선행 사건(상황) → 신체/정서 상태(배고픔·느낌) → 인지(기대) → 행동(먹은 것)
 const PLACES = ['집', '회사·학교', '이동 중', '카페·식당', '편의점·마트', '기타'];
 const ACTIVITIES = ['일·공부 중', '쉬는 중', 'TV·폰 보는 중', '혼자 있음', '누군가와 함께', '다툼·갈등 후', '식사 직후', '잠들기 전', '할 일 미루는 중', '음식을 봄·냄새 맡음'];
 const EMOTIONS = ['스트레스', '불안', '지루함', '외로움', '슬픔·우울', '짜증·화', '피곤함', '공허함', '죄책감', '기쁨·신남', '편안함', '보상받고 싶음'];
 const EXPECTATIONS = ['기분이 나아질 것', '스트레스가 풀릴 것', '위로받을 것', '나에게 주는 보상', '지루함이 사라질 것', '에너지가 생길 것', '잠깐 잊을 수 있을 것', '배고픔 해결', '그냥 습관처럼', '조금만 먹고 멈출 수 있을 것'];
-const AFTER_FEELINGS = ['만족', '편안함', '후회', '죄책감', '더부룩함', '여전히 스트레스', '더 먹고 싶음', '무덤덤', '기분 나아짐', '자책'];
 const LOC = { yes: '조절 못 했다', unsure: '잘 모르겠다', no: '조절했다' };
 
 // ───────────────────────── 유틸 ─────────────────────────
@@ -119,6 +118,33 @@ function wireChoices(root) {
   });
 }
 
+// 감정·점수 → 캐릭터 표정
+const EMOTION_MOOD = {
+  스트레스: 'worried', 불안: 'worried', '짜증·화': 'worried', 죄책감: 'sad', '슬픔·우울': 'sad', 외로움: 'sad', 공허함: 'sad',
+  지루함: 'curious', 피곤함: 'calm', '기쁨·신남': 'happy', 편안함: 'calm', '보상받고 싶음': 'curious',
+};
+
+function wireMoods(form) {
+  const update = () => {
+    $$('.wcard', form).forEach((card) => {
+      let mood = null;
+      const v = (n) => readScale(card, n);
+      if ($('.scale[data-name=hunger]', card) && v('hunger') != null) mood = v('hunger') >= 7 ? 'happy' : v('hunger') >= 4 ? 'calm' : 'curious';
+      const em = readChips(card, 'emotions');
+      if (em.length) mood = EMOTION_MOOD[em[em.length - 1]] || mood;
+      for (const n of ['intensity']) if ($(`.scale[data-name=${n}]`, card) && v(n) != null) mood = v(n) >= 7 ? 'worried' : v(n) >= 4 ? 'curious' : 'calm';
+      const loc = readChips(card, 'loc')[0];
+      if (loc) mood = loc === LOC.yes ? 'sad' : loc === LOC.no ? 'happy' : 'curious';
+      if (mood && card.dataset.mood !== mood) {
+        card.dataset.mood = mood;
+        setMood(card, mood);
+      }
+    });
+  };
+  form.addEventListener('click', () => setTimeout(update));
+  update();
+}
+
 // ───────────────────────── 카드 넘기기 ─────────────────────────
 // 질문 하나를 카드 한 장에 담고, 버튼이나 좌우 스와이프로 넘긴다
 function wizard(form, cards, submitLabel) {
@@ -128,7 +154,10 @@ function wizard(form, cards, submitLabel) {
     ${cards
       .map(
         (c, i) => `<section class="wcard" data-i="${i}" hidden>
-          ${say(c.char, c.mood, c.say)}
+          <div class="whead">
+            <div class="say-char" data-char="${c.char}">${character(c.char, c.mood)}</div>
+            <h2>${c.title}</h2>
+          </div>
           <div class="wbody">${c.body}</div>
         </section>`
       )
@@ -207,58 +236,57 @@ async function renderForm(id) {
     [
       {
         char: 'cookie', mood: 'happy',
-        say: entry ? '어떤 걸 고칠까?' : '안녕! 지금 간식 먹으려는 거지?<br/>언제, 뭘 먹는지 알려줘',
+        title: '언제, 무엇을 먹었나요?',
         body: `
           <input type="datetime-local" name="time" value="${esc(e.time || nowLocal())}" />
           <label class="photo-drop">
             <input type="file" accept="image/*" capture="environment" name="photo" hidden />
-            <div class="photo-preview">${photo ? `<img src="${photoUrl(photo)}" alt="먹은 것 사진" />` : '<span>📷 톡! 눌러서 사진 찍기</span>'}</div>
+            <div class="photo-preview">${photo ? `<img src="${photoUrl(photo)}" alt="먹은 것 사진" />` : '<span>📷 사진 찍기</span>'}</div>
           </label>
           <button type="button" class="link remove-photo" ${photo ? '' : 'hidden'}>사진 지우기</button>
-          <input type="text" name="food" placeholder="무엇을, 얼마나? (예: 감자칩 한 봉지)" value="${esc(e.food)}" />`,
+          <input type="text" name="food" placeholder="무엇을, 얼마나" value="${esc(e.food)}" />`,
       },
       {
         char: 'chips', mood: 'curious',
-        say: '방금 전엔 어디서<br/>뭐 하고 있었어?',
+        title: '직전 상황',
         body: `
-          <h3>어디서?</h3>
+          <h3>장소</h3>
           ${chips('place', PLACES, e.place ? [e.place] : [], false)}
-          <h3>뭐 하고 있었어?</h3>
+          <h3>하던 일</h3>
           ${chips('activity', ACTIVITIES, e.activity || [])}
-          <textarea name="situation" rows="2" placeholder="방금 무슨 일이 있었어? (예: 상사에게 지적받고 자리에 돌아옴)">${esc(e.situation)}</textarea>`,
+          <textarea name="situation" rows="2" placeholder="직전에 있었던 일 (선택)">${esc(e.situation)}</textarea>`,
       },
       {
         char: 'donut', mood: 'curious',
-        say: '솔직히…<br/>배는 얼마나 고파?',
+        title: '배고픔',
         body: `
-          ${scale('hunger', e.hunger, '전혀 안 고파', '엄청 고파')}
-          <p class="react" data-react="hunger"></p>`,
+          ${scale('hunger', e.hunger, '전혀 안 고픔', '매우 고픔')}`,
       },
       {
         char: 'icecream', mood: 'curious',
-        say: '지금 마음은 어때?<br/>여러 개 골라도 돼',
+        title: '느낌',
         body: `
           ${chips('emotions', EMOTIONS, e.emotions || [])}
-          <h3>그 마음, 얼마나 커?</h3>
-          ${scale('intensity', e.intensity, '살짝', '아주 크게')}
-          <textarea name="feelingNote" rows="2" placeholder="떠오르는 생각이나 몸의 느낌 (예: '오늘 하루 망했어', 가슴이 답답함)">${esc(e.feelingNote)}</textarea>`,
+          <h3>강도</h3>
+          ${scale('intensity', e.intensity, '약함', '매우 강함')}
+          <textarea name="feelingNote" rows="2" placeholder="떠오른 생각·몸의 느낌 (선택)">${esc(e.feelingNote)}</textarea>`,
       },
       {
         char: 'choco', mood: 'curious',
-        say: '나를 먹으면… 어떻게 될 것 같아?<br/>솔직하게 말해줘!',
+        title: '먹으면 어떻게 될 것 같나요?',
         body: `
           ${chips('expectations', EXPECTATIONS, e.expectations || [])}
-          <textarea name="expectationNote" rows="2" placeholder="먹고 나면 ~할 것 같아">${esc(e.expectationNote)}</textarea>`,
+          <textarea name="expectationNote" rows="2" placeholder="직접 적기 (선택)">${esc(e.expectationNote)}</textarea>`,
       },
       {
         char: 'cookie', mood: 'calm',
-        say: '먹는 양은 조절할 수 있었어?<br/><small>먹고 나서 골라도 괜찮아</small>',
+        title: '양을 조절했나요?',
         body: chips('loc', Object.values(LOC), e.loc ? [LOC[e.loc]] : [], false),
       },
       {
         char: 'chips', mood: 'happy',
-        say: '적어줘서 고마워!<br/>이렇게 알아차리는 게 제일 어려운 거야',
-        body: `${gang('happy')}<div class="summary"></div>`,
+        title: '확인',
+        body: `<div class="summary"></div>`,
         onShow: (card) => {
           const fd = new FormData(form);
           const parts = [
@@ -276,34 +304,8 @@ async function renderForm(id) {
   );
   wireChoices(form);
 
-  // 캐릭터가 답에 반응한다
-  const hungerCard = $('[data-react=hunger]', form);
-  const reactHunger = () => {
-    const h = readScale(form, 'hunger');
-    const card = hungerCard.closest('.wcard');
-    if (h == null) hungerCard.textContent = '';
-    else if (h <= 3) {
-      hungerCard.textContent = '음, 배가 고픈 건 아니구나. 그럼 다른 이유가 있을지도 몰라!';
-      setMood(card, 'curious');
-    } else if (h >= 7) {
-      hungerCard.textContent = '진짜 배고프구나! 몸이 보내는 신호야.';
-      setMood(card, 'happy');
-    } else {
-      hungerCard.textContent = '적당히 고프구나. 알려줘서 고마워.';
-      setMood(card, 'calm');
-    }
-  };
-  const reactIntensity = () => {
-    const v = readScale(form, 'intensity');
-    if (v == null) return;
-    setMood($('.scale[data-name=intensity]', form).closest('.wcard'), v >= 7 ? 'worried' : v >= 4 ? 'curious' : 'calm');
-  };
-  form.addEventListener('click', (ev) => {
-    if (ev.target.closest('.scale[data-name=hunger]')) reactHunger();
-    if (ev.target.closest('.scale[data-name=intensity]')) reactIntensity();
-  });
-  reactHunger();
-  reactIntensity();
+  // 답에 따라 캐릭터 표정만 바뀐다
+  wireMoods(form);
 
   const fileInput = $('input[name=photo]', form);
   const preview = $('.photo-preview', form);
@@ -319,7 +321,7 @@ async function renderForm(id) {
   removeBtn.addEventListener('click', () => {
     photo = null;
     fileInput.value = '';
-    preview.innerHTML = '<span>📷 톡! 눌러서 사진 찍기</span>';
+    preview.innerHTML = '<span>📷 사진 찍기</span>';
     removeBtn.hidden = true;
   });
 
@@ -345,79 +347,10 @@ async function renderForm(id) {
       expectations: readChips(form, 'expectations'),
       expectationNote: fd.get('expectationNote').trim(),
       loc: Object.keys(LOC).find((k) => LOC[k] === locLabel) || '',
-      after: e.after || null,
     };
     await db.put(saved);
-    toast(entry ? '고쳤어요' : '기록 완료! 잘했어 🌸');
+    toast('저장했어요');
     go(`#/entry/${saved.id}`);
-  });
-}
-
-// ───────────────────────── 사후 돌아보기 ─────────────────────────
-const MET = ['전혀 아니야', '조금', '반반', '꽤', '완전히'];
-
-async function renderAfter(id) {
-  const e = await db.get(id);
-  if (!e) return go('#/list');
-  const a = e.after || {};
-  setTitle('먹고 난 뒤 돌아보기');
-  view.innerHTML = '<form novalidate></form>';
-  const form = $('form', view);
-
-  const expected = [...(e.expectations || []), e.expectationNote].filter(Boolean);
-  wizard(
-    form,
-    [
-      {
-        char: 'choco', mood: 'curious',
-        say: `아까 나한테 이걸 기대했잖아…<br/><b>${expected.length ? expected.map(esc).join(' · ') : '(기대를 안 적었어)'}</b><br/>진짜 그렇게 됐어?`,
-        body: `
-          ${chips('met', MET, a.met ? [MET[a.met - 1]] : [], false)}
-          <h3>그 효과는 얼마나 갔어?</h3>
-          ${chips('lasted', ['몇 분', '30분 정도', '1시간 이상', '효과 없었음'], a.lasted ? [a.lasted] : [], false)}`,
-      },
-      {
-        char: 'icecream', mood: 'calm',
-        say: '지금 기분은 어때?',
-        body: `
-          ${chips('feelings', AFTER_FEELINGS, a.feelings || [])}
-          <h3>먹기 전 마음(${esc((e.emotions || []).join(', ') || '기록 없음')})은 지금 얼마나 커?</h3>
-          ${scale('intensityAfter', a.intensityAfter, '사라졌어', '아주 크게')}
-          ${e.intensity != null ? `<p class="hint">먹기 전에는 ${e.intensity}였어</p>` : ''}`,
-      },
-      {
-        char: 'donut', mood: 'happy',
-        say: '다음에 또 이런 상황이 오면<br/>우리 뭘 해볼까?',
-        body: `
-          <textarea name="thought" rows="3" placeholder="그때 생각을 다르게 바라본다면? (예: '먹어야 풀린다' → '15분 기다리면 충동은 줄어든다')">${esc(a.thought)}</textarea>
-          <textarea name="alternative" rows="2" placeholder="먹는 것 대신 해볼 일 (예: 산책 10분, 친구에게 메시지, 샤워)">${esc(a.alternative)}</textarea>`,
-      },
-      {
-        char: 'cookie', mood: 'happy',
-        say: '솔직하게 말해줘서 고마워.<br/>우리도 진짜 궁금했거든!',
-        body: gang('happy'),
-      },
-    ],
-    '돌아보기 저장'
-  );
-  wireChoices(form);
-
-  form.addEventListener('submit', async (ev) => {
-    ev.preventDefault();
-    const fd = new FormData(form);
-    const metLabel = readChips(form, 'met')[0];
-    e.after = {
-      at: new Date().toISOString(),
-      met: metLabel ? MET.indexOf(metLabel) + 1 : null,
-      lasted: readChips(form, 'lasted')[0] || '',
-      feelings: readChips(form, 'feelings'),
-      intensityAfter: readScale(form, 'intensityAfter'),
-      thought: fd.get('thought').trim(),
-      alternative: fd.get('alternative').trim(),
-    };
-    await db.put(e);
-    toast('돌아보기 저장 완료!');
-    go(`#/entry/${e.id}`);
   });
 }
 
@@ -431,12 +364,10 @@ function row(label, value) {
 async function renderEntry(id) {
   const e = await db.get(id);
   if (!e) return go('#/list');
-  const a = e.after;
   setTitle(`${fmtDate(e.time)} ${fmtTime(e.time)}`);
   view.innerHTML = `
     ${e.photo ? `<img class="hero" src="${photoUrl(e.photo)}" alt="먹은 것 사진" />` : ''}
     <section class="card">
-      <h2>먹기 전</h2>
       <dl>
         ${row('먹은 것', e.food)}
         ${row('장소', e.place)}
@@ -451,26 +382,7 @@ async function renderEntry(id) {
         ${row('조절', LOC[e.loc])}
       </dl>
     </section>
-    ${
-      a
-        ? `<section class="card">
-            <h2>먹고 난 뒤</h2>
-            <dl>
-              ${row('기대 충족', a.met ? `${a.met} / 5` : '')}
-              ${row('효과 지속', a.lasted)}
-              ${row('먹은 뒤 기분', a.feelings)}
-              ${row('감정 강도', a.intensityAfter != null ? `${e.intensity ?? '?'} → ${a.intensityAfter}` : '')}
-              ${row('다르게 보기', a.thought)}
-              ${row('대신 할 일', a.alternative)}
-            </dl>
-          </section>`
-        : `<section class="card nudge">
-            ${say('choco', 'curious', '먹고 30분쯤 지났어?<br/>내가 기대만큼 도움이 됐는지 궁금해!')}
-            <a class="button primary" href="#/after/${e.id}">돌아보기</a>
-          </section>`
-    }
     <div class="actions">
-      ${a ? `<a class="button" href="#/after/${e.id}">돌아보기 수정</a>` : ''}
       <a class="button" href="#/edit/${e.id}">수정</a>
       <button type="button" class="danger" id="del">삭제</button>
     </div>`;
@@ -488,7 +400,7 @@ async function renderList() {
   const list = await db.all();
   setTitle('나의 간식 일지');
   if (!list.length) {
-    view.innerHTML = `<div class="empty">${gang('curious')}<p>아직 기록이 없어요.</p><p>간식을 먹을 때마다 기록하면<br/>나만의 패턴이 보이기 시작해요.</p><a class="button primary" href="#/new">첫 기록 남기기</a></div>`;
+    view.innerHTML = `<div class="empty">${character('cookie', 'calm', 'big')}<p>아직 기록이 없어요.</p><p>간식을 먹을 때마다 기록하면<br/>나만의 패턴이 보이기 시작해요.</p><a class="button primary" href="#/new">첫 기록 남기기</a></div>`;
     return;
   }
   const byDay = new Map();
@@ -509,7 +421,6 @@ async function renderList() {
               <div class="body">
                 <div class="line1"><b>${fmtTime(e.time)}</b> ${esc(e.food || '')}</div>
                 <div class="line2">${[e.place, ...(e.emotions || [])].filter(Boolean).slice(0, 4).map((t) => `<span class="tag">${esc(t)}</span>`).join('')}</div>
-                ${e.after ? '' : '<div class="pending">돌아보기 전</div>'}
               </div>
               ${e.loc === 'yes' ? '<span class="flag" title="조절 못 함">!</span>' : ''}
             </a></li>`
@@ -539,8 +450,68 @@ function bars(pairs, total, limit = 5) {
 }
 
 let insightRange = 30;
+let calMonth = null; // 'YYYY-MM'
+let calDay = null;   // 'YYYY-MM-DD'
+
+function calendar(all) {
+  if (!calMonth) calMonth = nowLocal().slice(0, 7);
+  const [y, m] = calMonth.split('-').map(Number);
+  const first = new Date(y, m - 1, 1);
+  const days = new Date(y, m, 0).getDate();
+  const byDay = new Map();
+  for (const e of all) {
+    const k = e.time.slice(0, 10);
+    if (!byDay.has(k)) byDay.set(k, []);
+    byDay.get(k).push(e);
+  }
+  const today = nowLocal().slice(0, 10);
+  let bingeDays = 0, okDays = 0;
+  const cells = [];
+  for (let i = 0; i < first.getDay(); i++) cells.push('<div></div>');
+  for (let d = 1; d <= days; d++) {
+    const k = `${calMonth}-${pad(d)}`;
+    const list = byDay.get(k) || [];
+    const binge = list.some((e) => e.loc === 'yes');
+    if (list.length) binge ? bingeDays++ : okDays++;
+    const cls = ['day-cell', binge ? 'binge' : list.length ? 'ok' : '', k === today ? 'today' : '', k === calDay ? 'sel' : ''].join(' ');
+    cells.push(`<button type="button" class="${cls}" data-day="${k}">
+      <span class="d">${d}</span>
+      ${list.length ? character('cookie', binge ? 'sad' : 'happy') : ''}
+      ${list.length > 1 ? `<span class="cnt">${list.length}</span>` : ''}
+    </button>`);
+  }
+  const sel = calDay && byDay.get(calDay);
+  return `<section class="card cal">
+    <div class="cal-head">
+      <button type="button" class="cal-nav" data-step="-1" aria-label="이전 달">‹</button>
+      <h2>${y}년 ${m}월</h2>
+      <button type="button" class="cal-nav" data-step="1" aria-label="다음 달">›</button>
+    </div>
+    <div class="cal-grid wk">${WEEK.map((w) => `<div>${w}</div>`).join('')}</div>
+    <div class="cal-grid">${cells.join('')}</div>
+    <div class="cal-legend">
+      <span>${character('cookie', 'sad')} 폭식한 날 <b>${bingeDays}</b></span>
+      <span>${character('cookie', 'happy')} 폭식 없는 날 <b>${okDays}</b></span>
+    </div>
+    ${
+      calDay
+        ? `<div class="cal-day">
+            <h3>${fmtDate(calDay + 'T00:00')}</h3>
+            ${
+              sel
+                ? `<ul class="entries">${sel
+                    .map((e) => `<li><a href="#/entry/${e.id}" class="entry"><div class="body"><div class="line1"><b>${fmtTime(e.time)}</b> ${esc(e.food || '')}</div><div class="line2">${(e.emotions || []).slice(0, 3).map((t) => `<span class="tag">${esc(t)}</span>`).join('')}</div></div>${e.loc === 'yes' ? '<span class="flag">!</span>' : ''}</a></li>`)
+                    .join('')}</ul>`
+                : '<p class="hint">기록 없음</p>'
+            }
+          </div>`
+        : ''
+    }
+  </section>`;
+}
+
 async function renderInsights() {
-  setTitle('나의 패턴');
+  setTitle('달력 · 통계');
   const all = await db.all();
   const since = new Date();
   since.setDate(since.getDate() - insightRange + 1);
@@ -555,27 +526,12 @@ async function renderInsights() {
 
   const lowHunger = list.filter((e) => e.hunger != null && e.hunger <= 3).length;
   const withHunger = list.filter((e) => e.hunger != null).length;
-  const binge = list.filter((e) => e.loc === 'yes').length;
-  const reflected = list.filter((e) => e.after);
-
-  // 기대별 실제 충족도: "먹으면 ~할 것"이라는 생각이 실제로 맞았는지 확인하는 핵심 지표
-  const metBy = new Map();
-  for (const e of reflected) {
-    if (!e.after.met) continue;
-    for (const x of e.expectations || []) {
-      const s = metBy.get(x) || { sum: 0, n: 0 };
-      s.sum += e.after.met;
-      s.n++;
-      metBy.set(x, s);
-    }
-  }
-  const metRows = [...metBy.entries()].sort((a, b) => b[1].n - a[1].n);
-
-  const drops = reflected.filter((e) => e.intensity != null && e.after.intensityAfter != null);
-  const avgBefore = drops.length ? drops.reduce((s, e) => s + e.intensity, 0) / drops.length : 0;
-  const avgAfter = drops.length ? drops.reduce((s, e) => s + e.after.intensityAfter, 0) / drops.length : 0;
+  const bingeDays = new Set(list.filter((e) => e.loc === 'yes').map((e) => e.time.slice(0, 10))).size;
+  const recDays = new Set(list.map((e) => e.time.slice(0, 10))).size;
 
   view.innerHTML = `
+    ${calendar(all)}
+
     <div class="segmented" role="tablist">
       ${[[7, '7일'], [30, '30일'], [0, '전체']]
         .map(([v, l]) => `<button type="button" data-range="${v}" aria-pressed="${insightRange === v}">${l}</button>`)
@@ -584,52 +540,47 @@ async function renderInsights() {
 
     ${
       !n
-        ? `<div class="empty">${character('donut', 'calm', 'big')}<p>이 기간에는 기록이 없어요.</p></div>`
+        ? '<p class="hint center">이 기간에는 기록이 없어요.</p>'
         : `
     <div class="stats">
       <div class="stat"><b>${n}</b><span>간식 횟수</span></div>
-      <div class="stat"><b>${binge}</b><span>조절 못 한 날</span></div>
+      <div class="stat"><b>${bingeDays}<small>/${recDays}일</small></b><span>폭식한 날</span></div>
       <div class="stat"><b>${withHunger ? Math.round((lowHunger / withHunger) * 100) : '–'}%</b><span>배고프지 않을 때<br/>(배고픔 0–3)</span></div>
-      <div class="stat"><b>${n ? Math.round((reflected.length / n) * 100) : 0}%</b><span>돌아보기 완료</span></div>
+      <div class="stat"><b>${peak}시</b><span>가장 많이 먹는 시간</span></div>
     </div>
 
     <section class="card">
-      <h2>언제 먹나요?</h2>
+      <h2>시간대</h2>
       <div class="hours" aria-label="시간대별 간식 횟수">
         ${hours.map((v, h) => `<div class="h" title="${h}시 ${v}회"><i style="height:${(v / hmax) * 100}%"></i></div>`).join('')}
       </div>
       <div class="hours-axis"><span>0시</span><span>6시</span><span>12시</span><span>18시</span><span>24시</span></div>
-      <p class="hint">가장 많이 먹는 시간: <b>${peak}시 무렵</b></p>
     </section>
 
-    <section class="card"><h2>어떤 감정일 때?</h2>${bars(count(list, (e) => e.emotions), n)}</section>
-    <section class="card"><h2>어떤 상황에서?</h2>${bars(count(list, (e) => e.activity), n)}</section>
-    <section class="card"><h2>어디에서?</h2>${bars(count(list, (e) => e.place), n)}</section>
-    <section class="card"><h2>무엇을 기대하나요?</h2>${bars(count(list, (e) => e.expectations), n)}</section>
-
-    <section class="card">
-      <h2>기대 vs 현실</h2>
-      ${
-        metRows.length
-          ? `<p class="hint">먹기 전 기대가 실제로 얼마나 이루어졌는지 (5점 만점)</p>
-             <ul class="bars">${metRows
-               .map(
-                 ([k, s]) => `<li><span class="label">${esc(k)}</span><span class="bar met"><i style="width:${(s.sum / s.n / 5) * 100}%"></i></span><span class="val">${(s.sum / s.n).toFixed(1)}점 · ${s.n}회</span></li>`
-               )
-               .join('')}</ul>`
-          : '<p class="hint">먹고 난 뒤 "돌아보기"를 기록하면, 기대했던 효과가 실제로 있었는지 여기서 보여드려요.</p>'
-      }
-      ${
-        drops.length
-          ? `<p class="callout">먹기 전 감정 강도 평균 <b>${avgBefore.toFixed(1)}</b> → 먹은 뒤 <b>${avgAfter.toFixed(1)}</b></p>`
-          : ''
-      }
-    </section>`
+    <section class="card"><h2>감정</h2>${bars(count(list, (e) => e.emotions), n)}</section>
+    <section class="card"><h2>상황</h2>${bars(count(list, (e) => e.activity), n)}</section>
+    <section class="card"><h2>장소</h2>${bars(count(list, (e) => e.place), n)}</section>
+    <section class="card"><h2>기대</h2>${bars(count(list, (e) => e.expectations), n)}</section>`
     }`;
 
   $$('.segmented button', view).forEach((b) =>
     b.addEventListener('click', () => {
       insightRange = Number(b.dataset.range);
+      renderInsights();
+    })
+  );
+  $$('.cal-nav', view).forEach((b) =>
+    b.addEventListener('click', () => {
+      const [y, m] = calMonth.split('-').map(Number);
+      const d = new Date(y, m - 1 + Number(b.dataset.step), 1);
+      calMonth = `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
+      calDay = null;
+      renderInsights();
+    })
+  );
+  $$('.day-cell', view).forEach((b) =>
+    b.addEventListener('click', () => {
+      calDay = calDay === b.dataset.day ? null : b.dataset.day;
       renderInsights();
     })
   );
@@ -672,9 +623,8 @@ async function renderSettings() {
     </section>
 
     <section class="card about">
-      ${gang('happy')}
       <h2>이 앱은</h2>
-      <p>폭식 치료에 쓰이는 인지행동치료(CBT)의 <b>자기관찰 기록</b>을 돕습니다. 먹기 직전의 상황·느낌·생각(기대)을 적고, 먹은 뒤 그 기대가 맞았는지 확인하면서 "먹으면 나아질 것"이라는 자동적 사고를 알아차리고 다르게 반응하는 연습을 할 수 있어요.</p>
+      <p>폭식 치료에 쓰이는 인지행동치료(CBT)의 <b>자기관찰 기록</b>을 돕습니다. 먹기 직전의 상황·느낌·생각(기대)을 적으며 "먹으면 나아질 것"이라는 자동적 사고와 나만의 패턴을 알아차리도록 도와요.</p>
       <ul>
         <li>먹기 <b>직전·도중</b>에 바로 적을수록 정확해요.</li>
         <li>판단하지 말고 있는 그대로 적어요. 기록 자체가 이미 잘하고 있는 거예요.</li>
@@ -685,10 +635,9 @@ async function renderSettings() {
 
   $('#csv').addEventListener('click', async () => {
     const list = (await db.all()).reverse();
-    const head = ['시간', '먹은 것', '장소', '하던 일', '직전 상황', '배고픔', '느낌', '감정 강도', '생각·몸의 느낌', '기대', '기대 메모', '조절', '기대 충족(5)', '효과 지속', '먹은 뒤 기분', '먹은 뒤 감정 강도', '다르게 보기', '대신 할 일'];
+    const head = ['시간', '먹은 것', '장소', '하던 일', '직전 상황', '배고픔', '느낌', '감정 강도', '생각·몸의 느낌', '기대', '기대 메모', '조절'];
     const rows = list.map((e) => {
-      const a = e.after || {};
-      return [e.time.replace('T', ' '), e.food, e.place, e.activity, e.situation, e.hunger, e.emotions, e.intensity, e.feelingNote, e.expectations, e.expectationNote, LOC[e.loc], a.met, a.lasted, a.feelings, a.intensityAfter, a.thought, a.alternative].map(csvCell).join(',');
+      return [e.time.replace('T', ' '), e.food, e.place, e.activity, e.situation, e.hunger, e.emotions, e.intensity, e.feelingNote, e.expectations, e.expectationNote, LOC[e.loc]].map(csvCell).join(',');
     });
     download(`간식일지_${nowLocal().slice(0, 10)}.csv`, '﻿' + [head.join(','), ...rows].join('\n'), 'text/csv;charset=utf-8');
   });
@@ -736,10 +685,10 @@ function go(hash) {
 async function route() {
   releaseUrls();
   const [, page = 'new', id] = (location.hash || '#/new').split('/');
-  const tab = { new: 'new', edit: 'new', list: 'list', entry: 'list', after: 'list', insights: 'insights', settings: 'settings' }[page] || 'new';
+  const tab = { new: 'new', edit: 'new', list: 'list', entry: 'list', insights: 'insights', settings: 'settings' }[page] || 'new';
   $$('.tabbar a').forEach((a) => a.classList.toggle('active', a.dataset.tab === tab));
   window.scrollTo(0, 0);
-  const pages = { new: () => renderForm(), edit: () => renderForm(id), entry: () => renderEntry(id), after: () => renderAfter(id), list: renderList, insights: renderInsights, settings: renderSettings };
+  const pages = { new: () => renderForm(), edit: () => renderForm(id), entry: () => renderEntry(id), list: renderList, insights: renderInsights, settings: renderSettings };
   await (pages[page] || pages.new)();
 }
 
