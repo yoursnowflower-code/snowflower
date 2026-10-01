@@ -1,5 +1,5 @@
 import { db } from './db.js';
-import { character } from './characters.js';
+import { character, dayFace } from './characters.js';
 
 // ───────────────────────── 선택지 ─────────────────────────
 // 인지행동치료(CBT)의 자기관찰 기록지 항목을 바탕으로 구성:
@@ -565,7 +565,7 @@ function calendar(all) {
     const cls = ['day-cell', binge ? 'binge' : list.length ? 'ok' : '', pending ? 'pending-day' : '', k === today ? 'today' : '', k === calDay ? 'sel' : ''].join(' ');
     cells.push(`<button type="button" class="${cls}" data-day="${k}">
       <span class="d">${d}</span>
-      ${list.length ? character('cookie', binge ? 'sad' : 'happy') : ''}
+      ${list.length ? dayFace(binge) : ''}
       ${list.length > 1 ? `<span class="cnt">${list.length}</span>` : ''}
     </button>`);
   }
@@ -579,8 +579,8 @@ function calendar(all) {
     <div class="cal-grid wk">${WEEK.map((w) => `<div>${w}</div>`).join('')}</div>
     <div class="cal-grid">${cells.join('')}</div>
     <div class="cal-legend">
-      <span>${character('cookie', 'sad')} 폭식한 날 <b>${bingeDays}</b></span>
-      <span>${character('cookie', 'happy')} 폭식 없는 날 <b>${okDays}</b></span>
+      <span>${dayFace(true)} 폭식한 날 <b>${bingeDays}</b></span>
+      <span>${dayFace(false)} 폭식 없는 날 <b>${okDays}</b></span>
       <span class="faded-legend">흐린 날 = 먹고 난 후 미입력</span>
     </div>
     ${

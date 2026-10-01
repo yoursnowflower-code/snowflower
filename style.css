@@ -468,3 +468,13 @@ dd .sat-cells.mini + b, .sat-stats li > b { white-space: nowrap; }
 .photo-actions .button { padding: 10px 6px; font-size: 15px; box-shadow: none; border-width: 1.5px; cursor: pointer; }
 .remove-photo { display: block; margin: 4px auto 0; }
 .wbody input[name=food] { margin-top: 14px; }
+
+/* 달력 얼굴 */
+.day-cell .dayface { width: 72%; height: auto; margin-top: 1px; }
+.cal-legend .dayface { width: 22px; height: 22px; }
+.day-cell.binge { background: #ffe0e8; border-color: #ff6f91; border-width: 2px; }
+.day-cell.ok { background: #fff6d6; border-color: #f2c94c; }
+@media (prefers-color-scheme: dark) {
+  .day-cell.binge { background: #5a2a3a; }
+  .day-cell.ok { background: #4a4330; }
+}

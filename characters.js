@@ -102,3 +102,19 @@ export function say(id, mood, text) {
 export function gang(mood = 'happy') {
   return `<div class="gang">${['chips', 'cookie', 'icecream', 'donut', 'choco'].map((id, i) => character(id, i % 2 ? 'calm' : mood)).join('')}</div>`;
 }
+
+// 달력용 작은 얼굴: 작게 보여도 구분되도록 색과 표정을 크게 다르게
+export function dayFace(binge) {
+  return binge
+    ? `<svg class="dayface" viewBox="0 0 40 40" aria-label="폭식한 날">
+        <circle cx="20" cy="20" r="17" fill="#ff6f91" stroke="${INK}" stroke-width="2.6"/>
+        <path d="M11 14 l6 3 l-6 3 M29 14 l-6 3 l6 3" fill="none" stroke="${INK}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M12 30 q8 -8 16 0" fill="none" stroke="${INK}" stroke-width="2.8" stroke-linecap="round"/>
+      </svg>`
+    : `<svg class="dayface" viewBox="0 0 40 40" aria-label="폭식 없는 날">
+        <circle cx="20" cy="20" r="17" fill="#ffd66b" stroke="${INK}" stroke-width="2.6"/>
+        <path d="M11 17 q3 -5 6 0 M23 17 q3 -5 6 0" fill="none" stroke="${INK}" stroke-width="2.6" stroke-linecap="round"/>
+        <path d="M11 23 q9 11 18 0 z" fill="${INK}" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/>
+        <ellipse cx="9" cy="23" rx="3" ry="2" fill="#ff9fb8"/><ellipse cx="31" cy="23" rx="3" ry="2" fill="#ff9fb8"/>
+      </svg>`;
+}
