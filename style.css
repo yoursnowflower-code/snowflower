@@ -453,3 +453,11 @@ html, body { overflow-x: hidden; }
 
 .tabbar a { font-size: 15px; }
 .tabbar a svg { width: 24px; height: 24px; }
+
+/* 이모티콘 크기를 화면 폭에 맞추고, +숫자와 간격 두기 */
+.sat .cell, .sat .cell.on { font-size: clamp(20px, 7vw, 32px); min-width: 0; }
+.sat-cells { gap: 2px; }
+.sat-cells.mini { display: inline-flex; width: auto; gap: 1px; margin-right: 8px; }
+.sat-cells.mini i { font-size: 14px; }
+dd .sat-cells.mini + b, .sat-stats li > b { white-space: nowrap; }
+.sat-stats li { grid-template-columns: 6.5em auto auto 1fr; }
