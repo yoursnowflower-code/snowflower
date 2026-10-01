@@ -397,3 +397,30 @@ body { font-size: 18px; }
 .sat-avg { font-size: 14px; color: var(--warn); align-self: center; }
 .sat-stats .sat-cells.mini { grid-column: auto; }
 .sat-stats li > b { font-size: 15px; }
+
+/* 작은 글씨는 읽기 쉬운 푸어스토리 */
+.hint, .scale-labels, dt, .stat span, .bars .val, small, .cal-legend, .tag, .pending, .pending-tag,
+input, textarea, .summary, .hours-axis, .cal-grid.wk div, .day-cell .d, .sat-stats small, .about p, .about li, dd {
+  font-family: "Poor Story", "Gamja Flower", sans-serif;
+}
+
+/* 먹고 난 후: 간식 이모티콘 칸 */
+.sat .cell { font-size: 22px; line-height: 1; display: grid; place-items: center; background: var(--bg); border-style: dashed; }
+.sat .cell:not(.on) { filter: grayscale(1); opacity: .28; }
+.sat .cell.on { background: var(--pink-soft); border-style: solid; animation: pop .25s ease-out; }
+.sat-cells.mini i { height: auto; font-size: 13px; line-height: 1.2; text-align: center; font-style: normal; border: 0; background: none; }
+.sat-cells.mini i:not(.on) { filter: grayscale(1); opacity: .25; }
+.sat-cells.mini i.on { background: none; }
+
+/* 미입력 표시 */
+.day-cell.pending-day { opacity: .45; border-style: dashed; }
+.faded-legend { opacity: .7; }
+.cal-legend { flex-wrap: wrap; }
+.pending-tag { font-size: 12px; color: var(--muted); border: 1.5px dashed var(--muted); border-radius: 999px; padding: 1px 8px; align-self: center; }
+.binge-tag { background: var(--pink); border-color: var(--line); font-size: 13px; }
+.nudge { text-align: center; }
+.nudge .char.big { width: 96px; height: 96px; }
+.card > .button { width: 100%; margin-top: 10px; }
+.wizard.single .wiz-progress, .wizard.single .prev { display: none; }
+.wizard.single .wiz-nav { grid-template-columns: 1fr; }
+.row { border-top-color: var(--soft-line); }

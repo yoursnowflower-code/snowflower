@@ -6,7 +6,7 @@ import { character } from './characters.js';
 // 선행 사건(상황) → 신체/정서 상태(배고픔·느낌) → 인지(기대) → 행동(먹은 것)
 const PLACES = ['집', '회사·학교', '이동 중', '카페·식당', '편의점·마트', '기타'];
 const ACTIVITIES = ['일·공부 중', '쉬는 중', 'TV·폰 보는 중', '혼자 있음', '누군가와 함께', '다툼·갈등 후', '식사 직후', '잠들기 전', '할 일 미루는 중', '음식을 봄·냄새 맡음'];
-const EMOTIONS = ['스트레스', '불안', '지루함', '외로움', '슬픔·우울', '짜증·화', '피곤함', '허전함', '단 게 먹고 싶음', '죄책감', '기쁨·신남', '편안함', '보상받고 싶음'];
+const EMOTIONS = ['스트레스', '불안', '지루함', '외로움', '슬픔·우울', '짜증·화', '피곤함', '허전함', '특정 맛이 당김', '죄책감', '기쁨·신남', '편안함', '보상받고 싶음'];
 const EXPECTATIONS = ['기분이 나아질 것', '스트레스가 풀릴 것', '위로받을 것', '나에게 주는 보상', '지루함이 사라질 것', '에너지가 생길 것', '잠깐 잊을 수 있을 것', '배고픔 해결', '그냥 습관처럼', '조금만 먹고 멈출 수 있을 것'];
 const LOC = { yes: '조절 못 했다', unsure: '잘 모르겠다', no: '조절했다' }; // 예전 기록 표시용
 const SAT_MAX = 7;
@@ -131,7 +131,7 @@ function wireChoices(root) {
 
 // 감정·점수 → 캐릭터 표정
 const EMOTION_MOOD = {
-  스트레스: 'worried', 불안: 'worried', '짜증·화': 'worried', 죄책감: 'sad', '슬픔·우울': 'sad', 외로움: 'sad', 공허함: 'sad', 허전함: 'sad', '단 게 먹고 싶음': 'curious',
+  스트레스: 'worried', 불안: 'worried', '짜증·화': 'worried', 죄책감: 'sad', '슬픔·우울': 'sad', 외로움: 'sad', 공허함: 'sad', 허전함: 'sad', '특정 맛이 당김': 'curious',
   지루함: 'curious', 피곤함: 'calm', '기쁨·신남': 'happy', 편안함: 'calm', '보상받고 싶음': 'curious',
 };
 
@@ -142,10 +142,14 @@ const avgSat = (sat) => {
 };
 const satMood = (avg) => (avg == null ? null : avg >= 5.5 ? 'happy' : avg >= 3.5 ? 'calm' : avg >= 2 ? 'worried' : 'sad');
 
-function satRow(emotion, value) {
+const SNACKS = ['🍪', '🍦', '🍰', '🍩', '🧁', '🍭', '🍫'];
+const isDone = (e) => !!e.afterAt;
+
+function satRow(emotion, value, idx = 0) {
+  const icon = SNACKS[idx % SNACKS.length];
   return `<div class="sat" data-emotion="${esc(emotion)}" data-value="${value || 0}">
     <span class="sat-label">${esc(emotion)}</span>
-    <div class="sat-cells">${Array.from({ length: SAT_MAX }, (_, i) => `<button type="button" class="cell${i < (value || 0) ? ' on' : ''}" data-n="${i + 1}" aria-label="+${i + 1}"></button>`).join('')}</div>
+    <div class="sat-cells">${Array.from({ length: SAT_MAX }, (_, i) => `<button type="button" class="cell${i < (value || 0) ? ' on' : ''}" data-n="${i + 1}" aria-label="+${i + 1}">${icon}</button>`).join('')}</div>
     <span class="sat-val">${value ? `+${value}` : ''}</span>
   </div>`;
 }
@@ -157,8 +161,9 @@ function readSat(root) {
   });
   return out;
 }
-function satBar(value) {
-  return `<span class="sat-cells mini">${Array.from({ length: SAT_MAX }, (_, i) => `<i class="cell${i < value ? ' on' : ''}"></i>`).join('')}</span> <b>+${value}</b>`;
+function satBar(value, idx = 0) {
+  const icon = SNACKS[idx % SNACKS.length];
+  return `<span class="sat-cells mini">${Array.from({ length: SAT_MAX }, (_, i) => `<i class="cell${i < value ? ' on' : ''}">${icon}</i>`).join('')}</span> <b>+${value}</b>`;
 }
 
 function wireMoods(form) {
@@ -171,6 +176,7 @@ function wireMoods(form) {
       if (em.length) mood = EMOTION_MOOD[em[em.length - 1]] || mood;
       const sat = readSat(card);
       if (Object.keys(sat).length) mood = satMood(avgSat(sat));
+      if (readChips(card, 'binge').length) mood = 'sad';
       if (mood && card.dataset.mood !== mood) {
         card.dataset.mood = mood;
         setMood(card, mood);
@@ -185,6 +191,7 @@ function wireMoods(form) {
 // 질문 하나를 카드 한 장에 담고, 버튼이나 좌우 스와이프로 넘긴다
 function wizard(form, cards, submitLabel) {
   form.classList.add('wizard');
+  form.classList.toggle('single', cards.length === 1);
   form.innerHTML = `
     <div class="wiz-progress">${cards.map((_, i) => `<i data-i="${i}"></i>`).join('')}</div>
     ${cards
@@ -313,19 +320,6 @@ async function renderForm(id) {
           <textarea name="expectationNote" rows="2" placeholder="직접 적기 (선택)">${esc(e.expectationNote)}</textarea>`,
       },
       {
-        char: 'donut', mood: 'calm',
-        title: '먹고 난 후',
-        body: `<p class="hint center">고른 느낌이 얼마나 채워졌나요? (최대 +${SAT_MAX})</p><div class="sat-list"></div>`,
-        onShow: (card) => {
-          const list = $('.sat-list', card);
-          const prev = { ...(e.after || {}), ...readSat(card) };
-          const emos = readChips(form, 'emotions');
-          list.innerHTML = emos.length
-            ? emos.map((em) => satRow(em, prev[em])).join('')
-            : '<p class="hint center">앞에서 고른 느낌이 없어요.</p>';
-        },
-      },
-      {
         char: 'chips', mood: 'happy',
         title: '확인',
         body: `<div class="summary"></div>`,
@@ -337,7 +331,6 @@ async function renderForm(id) {
             ['📍', [readChips(form, 'place')[0], ...readChips(form, 'activity')].filter(Boolean).join(', ')],
             ['💭', readChips(form, 'emotions').join(', ')],
             ['✨', readChips(form, 'expectations').join(', ')],
-            ['🍃', Object.entries(readSat(form)).map(([k, v]) => `${k} +${v}`).join(', ')],
           ].filter(([, v]) => v);
           $('.summary', card).innerHTML = parts.map(([k, v]) => `<div><span>${k}</span>${esc(v)}</div>`).join('');
         },
@@ -387,11 +380,49 @@ async function renderForm(id) {
       feelingNote: fd.get('feelingNote').trim(),
       expectations: readChips(form, 'expectations'),
       expectationNote: fd.get('expectationNote').trim(),
-      after: readSat(form),
     };
     await db.put(saved);
     toast('저장했어요');
     go(`#/entry/${saved.id}`);
+  });
+}
+
+// ───────────────────────── 먹고 난 후 ─────────────────────────
+async function renderAfter(id) {
+  const e = await db.get(id);
+  if (!e) return go('#/list');
+  setTitle('먹고 난 후');
+  view.innerHTML = '<form novalidate></form>';
+  const form = $('form', view);
+  const emos = e.emotions || [];
+  wizard(
+    form,
+    [
+      {
+        char: 'donut', mood: 'calm',
+        title: '먹고 난 후',
+        body: `
+          <p class="hint center">${fmtTime(e.time)} · ${esc(e.food || '간식')}</p>
+          ${emos.length
+            ? `<p class="hint center">고른 느낌이 얼마나 채워졌나요? (최대 +${SAT_MAX})</p>
+               <div class="sat-list">${emos.map((em, i) => satRow(em, (e.after || {})[em], i)).join('')}</div>`
+            : '<p class="hint center">먹기 전에 고른 느낌이 없어요.</p>'}
+          <h3>폭식이었나요?</h3>
+          ${chips('binge', ['폭식이었어요'], e.binge ? ['폭식이었어요'] : [], false)}`,
+      },
+    ],
+    '저장'
+  );
+  wireChoices(form);
+  wireMoods(form);
+  form.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    e.after = readSat(form);
+    e.binge = readChips(form, 'binge').length > 0;
+    e.afterAt = new Date().toISOString();
+    await db.put(e);
+    toast('저장했어요');
+    go(`#/entry/${e.id}`);
   });
 }
 
@@ -423,9 +454,14 @@ async function renderEntry(id) {
       </dl>
     </section>
     ${
-      e.after && Object.keys(e.after).length
-        ? `<section class="card"><h2>먹고 난 후</h2><dl>${Object.entries(e.after).map(([k, v]) => `<div class="row"><dt>${esc(k)}</dt><dd>${satBar(v)}</dd></div>`).join('')}</dl></section>`
-        : ''
+      isDone(e)
+        ? `<section class="card"><h2>먹고 난 후 ${e.binge ? '<span class="tag binge-tag">폭식</span>' : ''}</h2><dl>${Object.entries(e.after || {}).map(([k, v], i) => `<div class="row"><dt>${esc(k)}</dt><dd>${satBar(v, i)}</dd></div>`).join('')}</dl>
+            <a class="button" href="#/after/${e.id}">먹고 난 후 고치기</a></section>`
+        : `<section class="card nudge">
+            ${character('donut', 'curious', 'big')}
+            <p>다 먹었나요? 먹고 난 후를 기록해요.</p>
+            <a class="button primary" href="#/after/${e.id}">먹고 난 후 기록하기</a>
+          </section>`
     }
     <div class="actions">
       <a class="button" href="#/edit/${e.id}">수정</a>
@@ -462,10 +498,11 @@ async function renderList() {
         ${items
           .map(
             (e) => `<li><a href="#/entry/${e.id}" class="entry">
-              <div class="thumb">${e.photo ? `<img src="${photoUrl(e.photo)}" alt="" loading="lazy" />` : character('cookie', satMood(avgSat(e.after)) || 'calm')}</div>
+              <div class="thumb">${e.photo ? `<img src="${photoUrl(e.photo)}" alt="" loading="lazy" />` : character('cookie', e.binge ? 'sad' : satMood(avgSat(e.after)) || 'calm')}</div>
               <div class="body">
                 <div class="line1"><b>${fmtTime(e.time)}</b> ${esc(e.food || '')}</div>
                 <div class="line2">${[e.place, ...(e.emotions || [])].filter(Boolean).slice(0, 4).map((t) => `<span class="tag">${esc(t)}</span>`).join('')}</div>
+                ${isDone(e) ? '' : '<div class="pending">먹고 난 후 미입력</div>'}
               </div>
             </a></li>`
           )
@@ -515,14 +552,13 @@ function calendar(all) {
   for (let d = 1; d <= days; d++) {
     const k = `${calMonth}-${pad(d)}`;
     const list = byDay.get(k) || [];
-    const sats = list.map((e) => avgSat(e.after)).filter((v) => v != null);
-    const avg = sats.length ? sats.reduce((a, b) => a + b, 0) / sats.length : null;
-    const low = avg != null && avg < 3.5;
-    if (list.length) low ? bingeDays++ : okDays++;
-    const cls = ['day-cell', low ? 'binge' : list.length ? 'ok' : '', k === today ? 'today' : '', k === calDay ? 'sel' : ''].join(' ');
+    const binge = list.some((e) => e.binge);
+    const pending = list.some((e) => !isDone(e));
+    if (list.length) binge ? bingeDays++ : okDays++;
+    const cls = ['day-cell', binge ? 'binge' : list.length ? 'ok' : '', pending ? 'pending-day' : '', k === today ? 'today' : '', k === calDay ? 'sel' : ''].join(' ');
     cells.push(`<button type="button" class="${cls}" data-day="${k}">
       <span class="d">${d}</span>
-      ${list.length ? character('cookie', satMood(avg) || 'calm') : ''}
+      ${list.length ? character('cookie', binge ? 'sad' : 'happy') : ''}
       ${list.length > 1 ? `<span class="cnt">${list.length}</span>` : ''}
     </button>`);
   }
@@ -536,8 +572,9 @@ function calendar(all) {
     <div class="cal-grid wk">${WEEK.map((w) => `<div>${w}</div>`).join('')}</div>
     <div class="cal-grid">${cells.join('')}</div>
     <div class="cal-legend">
-      <span>${character('cookie', 'worried')} 만족 낮은 날 <b>${bingeDays}</b></span>
-      <span>${character('cookie', 'happy')} 그 외 <b>${okDays}</b></span>
+      <span>${character('cookie', 'sad')} 폭식한 날 <b>${bingeDays}</b></span>
+      <span>${character('cookie', 'happy')} 폭식 없는 날 <b>${okDays}</b></span>
+      <span class="faded-legend">흐린 날 = 먹고 난 후 미입력</span>
     </div>
     ${
       calDay
@@ -546,7 +583,7 @@ function calendar(all) {
             ${
               sel
                 ? `<ul class="entries">${sel
-                    .map((e) => `<li><a href="#/entry/${e.id}" class="entry"><div class="body"><div class="line1"><b>${fmtTime(e.time)}</b> ${esc(e.food || '')}</div><div class="line2">${(e.emotions || []).slice(0, 3).map((t) => `<span class="tag">${esc(t)}</span>`).join('')}</div></div>${e.after && Object.keys(e.after).length ? `<span class="sat-avg">+${avgSat(e.after).toFixed(1)}</span>` : ''}</a></li>`)
+                    .map((e) => `<li><a href="#/entry/${e.id}" class="entry"><div class="body"><div class="line1"><b>${fmtTime(e.time)}</b> ${esc(e.food || '')}</div><div class="line2">${(e.emotions || []).slice(0, 3).map((t) => `<span class="tag">${esc(t)}</span>`).join('')}</div></div>${e.binge ? '<span class="flag">!</span>' : isDone(e) ? '' : '<span class="pending-tag">미입력</span>'}</a></li>`)
                     .join('')}</ul>`
                 : '<p class="hint">기록 없음</p>'
             }
@@ -597,7 +634,7 @@ async function renderInsights() {
         : `
     <div class="stats">
       <div class="stat"><b>${n}</b><span>간식 횟수</span></div>
-      <div class="stat"><b>${recDays}일</b><span>기록한 날</span></div>
+      <div class="stat"><b>${new Set(list.filter((e) => e.binge).map((e) => e.time.slice(0, 10))).size}<small>/${recDays}일</small></b><span>폭식한 날</span></div>
       <div class="stat"><b>${avgCraving != null ? avgCraving.toFixed(1) : '–'}</b><span>평균 먹고 싶음 (10점)</span></div>
       <div class="stat"><b>${peak}시</b><span>가장 많이 먹는 시간</span></div>
     </div>
@@ -613,7 +650,7 @@ async function renderInsights() {
     <section class="card"><h2>감정</h2>${bars(count(list, (e) => e.emotions), n)}</section>
     <section class="card"><h2>먹고 난 후 만족도</h2>${
       satRows.length
-        ? `<p class="hint">느낌별 평균 (최대 +${SAT_MAX})</p><ul class="sat-stats">${satRows.map(([k, avg, c]) => `<li><span class="label">${esc(k)}</span>${satBar(Math.round(avg))}<small>${c}회</small></li>`).join('')}</ul>`
+        ? `<p class="hint">느낌별 평균 (최대 +${SAT_MAX})</p><ul class="sat-stats">${satRows.map(([k, avg, c]) => `<li><span class="label">${esc(k)}</span>${satBar(Math.round(avg), SNACKS.length - 1)}<small>${c}회</small></li>`).join('')}</ul>`
         : '<p class="hint">"먹고 난 후"를 기록하면 여기에 보여요.</p>'
     }</section>
     <section class="card"><h2>상황</h2>${bars(count(list, (e) => e.activity), n)}</section>
@@ -693,9 +730,9 @@ async function renderSettings() {
 
   $('#csv').addEventListener('click', async () => {
     const list = (await db.all()).reverse();
-    const head = ['시간', '먹은 것', '장소', '하던 일', '직전 상황', '먹고 싶음', '느낌', '생각·몸의 느낌', '기대', '기대 메모', '먹고 난 후'];
+    const head = ['시간', '먹은 것', '장소', '하던 일', '직전 상황', '먹고 싶음', '느낌', '생각·몸의 느낌', '기대', '기대 메모', '먹고 난 후', '폭식'];
     const rows = list.map((e) => {
-      return [e.time.replace('T', ' '), e.food, e.place, e.activity, e.situation, e.craving ?? e.hunger, e.emotions, e.feelingNote, e.expectations, e.expectationNote, Object.entries(e.after || {}).map(([k, v]) => `${k} +${v}`)].map(csvCell).join(',');
+      return [e.time.replace('T', ' '), e.food, e.place, e.activity, e.situation, e.craving ?? e.hunger, e.emotions, e.feelingNote, e.expectations, e.expectationNote, Object.entries(e.after || {}).map(([k, v]) => `${k} +${v}`), e.binge ? 'O' : ''].map(csvCell).join(',');
     });
     download(`간식일지_${nowLocal().slice(0, 10)}.csv`, '﻿' + [head.join(','), ...rows].join('\n'), 'text/csv;charset=utf-8');
   });
@@ -743,10 +780,10 @@ function go(hash) {
 async function route() {
   releaseUrls();
   const [, page = 'new', id] = (location.hash || '#/new').split('/');
-  const tab = { new: 'new', edit: 'new', list: 'list', entry: 'list', insights: 'insights', settings: 'settings' }[page] || 'new';
+  const tab = { new: 'new', edit: 'new', list: 'list', entry: 'list', after: 'list', insights: 'insights', settings: 'settings' }[page] || 'new';
   $$('.tabbar a').forEach((a) => a.classList.toggle('active', a.dataset.tab === tab));
   window.scrollTo(0, 0);
-  const pages = { new: () => renderForm(), edit: () => renderForm(id), entry: () => renderEntry(id), list: renderList, insights: renderInsights, settings: renderSettings };
+  const pages = { new: () => renderForm(), edit: () => renderForm(id), entry: () => renderEntry(id), after: () => renderAfter(id), list: renderList, insights: renderInsights, settings: renderSettings };
   await (pages[page] || pages.new)();
 }
 
