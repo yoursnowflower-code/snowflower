@@ -192,9 +192,11 @@ function wireMoods(form) {
 
 // ───────────────────────── 카드 넘기기 ─────────────────────────
 // 질문 하나를 카드 한 장에 담고, 버튼이나 좌우 스와이프로 넘긴다
-function wizard(form, cards, submitLabel) {
+function wizard(form, cards, submitLabel, { alwaysSave = false } = {}) {
+  // alwaysSave: 이미 저장된 기록을 고칠 때는 어느 카드에서든 저장할 수 있게
   form.classList.add('wizard');
   form.classList.toggle('single', cards.length === 1);
+  form.classList.toggle('always-save', alwaysSave);
   form.innerHTML = `
     <div class="wiz-progress">${cards.map((_, i) => `<i data-i="${i}"></i>`).join('')}</div>
     ${cards
@@ -233,7 +235,7 @@ function wizard(form, cards, submitLabel) {
     prev.hidden = cur === 0;
     const last = cur === cards.length - 1;
     next.hidden = last;
-    save.hidden = !last;
+    save.hidden = !last && !alwaysSave;
     cards[cur].onShow?.(secs[cur]);
     window.scrollTo({ top: 0 });
   }
@@ -340,7 +342,8 @@ async function renderForm(id) {
         },
       },
     ],
-    entry ? '고친 내용 저장' : '저장하기'
+    entry ? '고친 내용 저장' : '저장하기',
+    { alwaysSave: !!entry }
   );
   wireChoices(form);
 
