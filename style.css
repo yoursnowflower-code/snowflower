@@ -443,3 +443,10 @@ input[type=datetime-local]::-webkit-date-and-time-value { text-align: left; marg
 input[type=datetime-local]::-webkit-datetime-edit { padding: 0; }
 .wcard, .wbody { min-width: 0; overflow-x: hidden; }
 html, body { overflow-x: hidden; }
+
+/* 이전·다음: 카드 아래 페이지 흐름에, 가운데 정렬 */
+.wiz-nav, .wizard.single .wiz-nav {
+  position: static; display: flex; justify-content: center; gap: 12px;
+  margin: 18px 0 8px;
+}
+.wiz-nav button { flex: 0 1 160px; }

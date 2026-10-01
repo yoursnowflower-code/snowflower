@@ -227,7 +227,7 @@ function wizard(form, cards, submitLabel) {
     void secs[cur].offsetWidth;
     secs[cur].classList.add(dir > 0 ? 'in-right' : 'in-left');
     dots.forEach((d, k) => d.classList.toggle('on', k <= cur));
-    prev.style.visibility = cur === 0 ? 'hidden' : 'visible';
+    prev.hidden = cur === 0;
     const last = cur === cards.length - 1;
     next.hidden = last;
     save.hidden = !last;
