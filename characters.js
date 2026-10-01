@@ -118,11 +118,8 @@ const POKSIK = `
   <path d="M19.4 26 q2.4 .4 2.5 3 q-2.5 1.2 -3.8 -1.3z" fill="#ff6f91" stroke="${INK}" stroke-width="1.2"/>
   <circle cx="13" cy="29" r="1" fill="${CHIP}"/><circle cx="25.5" cy="29.5" r=".9" fill="${CHIP}"/><circle cx="23" cy="31.2" r=".7" fill="${CHIP}"/>`;
 
-// 건강이: 동그란 쿠키, 하늘색 운동 머리띠, 두 팔 번쩍 화이팅, 운동화
+// 건강이: 동그란 쿠키, 하늘색 운동 머리띠, 땀 한 방울 (팔다리 없음)
 const GEONGANG = `
-  <path d="M15 38.5 l-1.5 2.5 h-3 M25 38.5 l1.5 2.5 h3" fill="none" stroke="${INK}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M6 20 q-4 -3 -3.5 -8 M34 20 q4 -3 3.5 -8" fill="none" stroke="${INK}" stroke-width="2.4" stroke-linecap="round"/>
-  <circle cx="2.6" cy="10.6" r="2" fill="#f4c98f" stroke="${INK}" stroke-width="1.8"/><circle cx="37.4" cy="10.6" r="2" fill="#f4c98f" stroke="${INK}" stroke-width="1.8"/>
   <circle cx="20" cy="22" r="16.5" fill="#f4c98f" stroke="${INK}" stroke-width="2.4"/>
   <circle cx="10" cy="28" r="1.5" fill="${CHIP}"/><circle cx="30.5" cy="29" r="1.5" fill="${CHIP}"/><circle cx="20" cy="33.5" r="1.2" fill="${CHIP}"/>
   <path d="M4.2 15 Q20 9 35.8 15 L35.6 19.6 Q20 13.8 4.4 19.6 Z" fill="#4fa8dc" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/>
