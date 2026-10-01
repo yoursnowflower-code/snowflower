@@ -285,10 +285,11 @@ async function renderForm(id) {
         title: '언제, 무엇을 먹었나요?',
         body: `
           <input type="datetime-local" name="time" value="${esc(e.time || nowLocal())}" />
-          <label class="photo-drop">
-            <input type="file" accept="image/*" capture="environment" name="photo" hidden />
-            <div class="photo-preview">${photo ? `<img src="${photoUrl(photo)}" alt="먹은 것 사진" />` : '<span>📷 사진 찍기</span>'}</div>
-          </label>
+          <div class="photo-preview">${photo ? `<img src="${photoUrl(photo)}" alt="먹은 것 사진" />` : '<span>먹은 것 사진 (선택)</span>'}</div>
+          <div class="photo-actions">
+            <label class="button"><input type="file" accept="image/*" capture="environment" name="photo" hidden />📷 사진 찍기</label>
+            <label class="button"><input type="file" accept="image/*" name="photo" hidden />🖼️ 앨범에서 고르기</label>
+          </div>
           <button type="button" class="link remove-photo" ${photo ? '' : 'hidden'}>사진 지우기</button>
           <input type="text" name="food" placeholder="무엇을, 얼마나" value="${esc(e.food)}" />`,
       },
@@ -346,21 +347,24 @@ async function renderForm(id) {
   // 답에 따라 캐릭터 표정만 바뀐다
   wireMoods(form);
 
-  const fileInput = $('input[name=photo]', form);
+  // 사진 찍기 / 앨범에서 고르기 둘 다 같은 방식으로 처리
+  const fileInputs = $$('input[name=photo]', form);
   const preview = $('.photo-preview', form);
   const removeBtn = $('.remove-photo', form);
-  fileInput.addEventListener('change', async () => {
-    const f = fileInput.files[0];
-    if (!f) return;
-    preview.innerHTML = '<span>사진 처리 중…</span>';
-    photo = await shrinkImage(f);
-    preview.innerHTML = `<img src="${photoUrl(photo)}" alt="먹은 것 사진" />`;
-    removeBtn.hidden = false;
-  });
+  fileInputs.forEach((input) =>
+    input.addEventListener('change', async () => {
+      const f = input.files[0];
+      if (!f) return;
+      preview.innerHTML = '<span>사진 처리 중…</span>';
+      photo = await shrinkImage(f);
+      preview.innerHTML = `<img src="${photoUrl(photo)}" alt="먹은 것 사진" />`;
+      removeBtn.hidden = false;
+      input.value = '';
+    })
+  );
   removeBtn.addEventListener('click', () => {
     photo = null;
-    fileInput.value = '';
-    preview.innerHTML = '<span>📷 사진 찍기</span>';
+    preview.innerHTML = '<span>먹은 것 사진 (선택)</span>';
     removeBtn.hidden = true;
   });
 

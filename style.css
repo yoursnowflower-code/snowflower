@@ -461,3 +461,10 @@ html, body { overflow-x: hidden; }
 .sat-cells.mini i { font-size: 14px; }
 dd .sat-cells.mini + b, .sat-stats li > b { white-space: nowrap; }
 .sat-stats li { grid-template-columns: 6.5em auto auto 1fr; }
+
+/* 사진: 미리보기 + 찍기/앨범 버튼, 위아래 간격 */
+.photo-preview { margin-top: 14px; min-height: 120px; }
+.photo-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+.photo-actions .button { padding: 10px 6px; font-size: 15px; box-shadow: none; border-width: 1.5px; cursor: pointer; }
+.remove-photo { display: block; margin: 4px auto 0; }
+.wbody input[name=food] { margin-top: 14px; }
